@@ -44,6 +44,14 @@
  * The column for which this is handling actions.
  */
 @property (nonatomic) OOOutlineColumn *column;
+/**
+ * The controller displaying the outline.
+ */
+@property (nonatomic, unsafe_unretained) OOOutlineDataSource *controller;
+@end
+
+@interface OOOutlineDataSource ()
+- (void)clearCacheAndUpdate;
 @end
 
 auto *OOOUtlineRowsPasteboardType = @"org.theravensnest.openoutliner.internal.drag";
@@ -52,6 +60,7 @@ auto *OOOUtlineRowsPasteboardType = @"org.theravensnest.openoutliner.internal.dr
 @synthesize
 	column,
 	columnNumber,
+	controller,
 	row;
 
 - (void)edited: sender
@@ -65,8 +74,17 @@ auto *OOOUtlineRowsPasteboardType = @"org.theravensnest.openoutliner.internal.dr
 	OOOutlineValue *val = [row.values objectAtIndex: columnNumber];
 	OOOutlineValue *newVal = [[[val class] alloc] initWithValue: [view objectValue]
 	                                                   inColumn: column];
-	[row.values replaceObjectAtIndex: columnNumber
+	auto *vals = row.values;
+	auto *undo = [row.document undoManager];
+	[undo beginUndoGrouping];
+	[undo setActionName: @"edit cell"];
+	[[undo prepareWithInvocationTarget: controller] clearCacheAndUpdate];
+	[[undo prepareWithInvocationTarget: vals] replaceObjectAtIndex: columnNumber
+														withObject: [vals objectAtIndex:columnNumber]];
+	[undo endUndoGrouping];
+	[vals replaceObjectAtIndex: columnNumber
 	                      withObject: newVal];
+
 }
 - (void)comboBoxSelectionDidChange: (NSNotification*)aNotification
 {
@@ -245,6 +263,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 			d.columnNumber = (NSUInteger)-1;
 			d.column = doc.noteColumn;
 			d.row = [outlineView itemAtRow: row - 1];
+			d.controller = self;
 			[targets[0] setObject: d forKey: item];
 		}
 		v.target = d;
@@ -262,6 +281,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 			d.columnNumber = (NSUInteger)idx;
 			d.column = [doc.columns objectAtIndex: (NSUInteger)idx];
 			d.row = item;
+			d.controller = self;
 			[targets[(size_t)idx+1] setObject: d forKey: item];
 		}
 		v.allowsEditingTextAttributes = YES;
