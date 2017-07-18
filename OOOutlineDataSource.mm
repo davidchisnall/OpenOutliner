@@ -94,10 +94,6 @@ auto *OOOUtlineRowsPasteboardType = @"org.theravensnest.openoutliner.internal.dr
 
 - (void)awakeFromNib
 {
-	[[NSNotificationCenter defaultCenter] addObserver: self
-	                                         selector: @selector(controlTextDidChange:)
-	                                             name: NSControlTextDidChangeNotification
-	                                           object: nil];
 	OOOutlineDocument *doc = document;
 	NSOutlineView *v = view;
 	auto *cols = [doc columns];
