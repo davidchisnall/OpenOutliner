@@ -90,7 +90,7 @@
 	}
 	else
 	{
-		for (OOOutlineColumn *col in aDoc.columns)
+		for (NSUInteger i=0, e=[aDoc.columns count] ; i<e ; ++i)
 		{
 			[values addObject: [OOOutlineValue placeholder]];
 		}
