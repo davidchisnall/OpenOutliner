@@ -10,6 +10,7 @@
 		2812E1E11F052B1F00A1C7EE /* OOStyleRegistry.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2812E1E01F052B1F00A1C7EE /* OOStyleRegistry.mm */; };
 		2812E1E51F079C0B00A1C7EE /* NSString+MissingCasts.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2812E1E41F079C0B00A1C7EE /* NSString+MissingCasts.mm */; };
 		288B50D41F1DF59A0012B542 /* NSColor+OO3.mm in Sources */ = {isa = PBXBuildFile; fileRef = 288B50D31F1DF59A0012B542 /* NSColor+OO3.mm */; };
+		289433331F1E390900BE841A /* OpenOutliner.icns in Resources */ = {isa = PBXBuildFile; fileRef = 289433321F1E390900BE841A /* OpenOutliner.icns */; };
 		28E235D61EFE4595003762C8 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 28E235D51EFE4595003762C8 /* AppDelegate.m */; };
 		28E235D91EFE4595003762C8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 28E235D81EFE4595003762C8 /* main.m */; };
 		28E235DF1EFE4595003762C8 /* OOOutlineDocument.mm in Sources */ = {isa = PBXBuildFile; fileRef = 28E235DE1EFE4595003762C8 /* OOOutlineDocument.mm */; };
@@ -37,6 +38,7 @@
 		2812E1E41F079C0B00A1C7EE /* NSString+MissingCasts.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "NSString+MissingCasts.mm"; sourceTree = "<group>"; };
 		288B50D21F1DF59A0012B542 /* NSColor+OO3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSColor+OO3.h"; sourceTree = "<group>"; };
 		288B50D31F1DF59A0012B542 /* NSColor+OO3.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "NSColor+OO3.mm"; sourceTree = "<group>"; };
+		289433321F1E390900BE841A /* OpenOutliner.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = OpenOutliner.icns; path = Icon/OpenOutliner.icns; sourceTree = SOURCE_ROOT; };
 		28E235D11EFE4595003762C8 /* OpenOutliner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenOutliner.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		28E235D41EFE4595003762C8 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		28E235D51EFE4595003762C8 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -87,7 +89,7 @@
 		28E235C81EFE4595003762C8 = {
 			isa = PBXGroup;
 			children = (
-				28E235D31EFE4595003762C8 /* OpenOutliner */,
+				28E235D31EFE4595003762C8 /* . */,
 				28E235D21EFE4595003762C8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -100,9 +102,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		28E235D31EFE4595003762C8 /* OpenOutliner */ = {
+		28E235D31EFE4595003762C8 /* . */ = {
 			isa = PBXGroup;
 			children = (
+				289433321F1E390900BE841A /* OpenOutliner.icns */,
 				28E235D41EFE4595003762C8 /* AppDelegate.h */,
 				28E235D51EFE4595003762C8 /* AppDelegate.m */,
 				28E235E01EFE4595003762C8 /* Assets.xcassets */,
@@ -214,6 +217,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				289433331F1E390900BE841A /* OpenOutliner.icns in Resources */,
 				28E235E11EFE4595003762C8 /* Assets.xcassets in Resources */,
 				28E235F61EFE82E9003762C8 /* OutlineDocumentWindow.xib in Resources */,
 				28E235E41EFE4595003762C8 /* Main.storyboard in Resources */,
