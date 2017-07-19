@@ -81,9 +81,22 @@
 }
 - (instancetype)initWithValue: (id)aValue inColumn: (OOOutlineColumn*)aCol
 {
-	OO_ABSTRACT_METHOD();
+	static std::unordered_map<OOOutlineColumnType, Class> subclasses =
+	{
+		{ OOOutlineColumnTypeText, [OOOutlineTextValue class] },
+		{ OOOutlineColumnTypeEnumeration, [OOOutlineEnumValue class] },
+		{ OOOutlineColumnTypeDate, [OOOutlineDateValue class] },
+		{ OOOutlineColumnTypeNumber, [OOOutlineNumberValue class] },
+	};
+	OOOutlineColumnType columnType = [aCol columnType];
+	if (subclasses.find(columnType) == subclasses.end())
+	{
+		[NSException raise: NSInternalInconsistencyException
+		            format: @"Unknown column type %d", (int)columnType];
+	}
+	return [[subclasses[columnType] alloc] initWithValue: aValue
+	                                            inColumn: aCol];
 }
-
 @end
 
 @implementation OOOutlineTextValue
@@ -254,23 +267,6 @@
 - (NSXMLElement*)oo3xmlValue
 {
 	return [NSXMLElement elementWithName: @"null"];
-}
-- (instancetype)initWithValue: (id)aValue inColumn: (OOOutlineColumn*)aCol
-{
-	static std::unordered_map<OOOutlineColumnType, Class> subclasses =
-	{
-		{ OOOutlineColumnTypeText, [OOOutlineTextValue class] },
-		{ OOOutlineColumnTypeEnumeration, [OOOutlineEnumValue class] },
-		{ OOOutlineColumnTypeDate, [OOOutlineDateValue class] },
-		{ OOOutlineColumnTypeNumber, [OOOutlineNumberValue class] },
-	};
-	OOOutlineColumnType columnType = [aCol columnType];
-	if (subclasses.find(columnType) == subclasses.end())
-	{
-		[NSException raise: NSInternalInconsistencyException
-					format: @"Unknown column type %d", (int)columnType];
-	}
-	return [[subclasses[columnType] alloc] initWithValue: aValue inColumn: aCol];
 }
 @end
 
