@@ -48,5 +48,8 @@
 {
 	return static_cast<unsigned int>([self integerValue]);
 }
-
+- (NSString*)stringValue
+{
+	return [self copy];
+}
 @end

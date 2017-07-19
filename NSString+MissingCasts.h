@@ -50,5 +50,8 @@
  * Return the string as an `NSUInteger`.
  */
 - (NSUInteger)unsignedIntegerValue;
-
+/**
+ * Return the string as a string.
+ */
+- (NSString*)stringValue;
 @end
