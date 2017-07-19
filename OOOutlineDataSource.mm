@@ -274,8 +274,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 		NSAssert([item isKindOfClass: [NSAttributedString class]], @"Group rows should be notes");
 		NSInteger row = [outlineView rowForItem: item];
 		NSTableRowView *rv = [outlineView rowViewAtRow: row makeIfNecessary: NO];
-		NSAssert(rv, @"Row view somehow deallocated in between creation and population");
-		NSRect b = [rv bounds];
+		NSRect b = rv ? [rv bounds] : NSMakeRect(0, 0, [view bounds].size.width, 20);
 		rv.backgroundColor = [NSColor whiteColor];
 		b.size.width -= 5;
 		auto *v = [[NSTextField alloc] initWithFrame: b];
