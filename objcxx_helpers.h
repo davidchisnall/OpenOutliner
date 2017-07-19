@@ -35,6 +35,7 @@
 #include <unordered_map>
 #include <map>
 #include <type_traits>
+#include <array>
 
 namespace {
 /**
@@ -148,9 +149,93 @@ id get_as_object(T &val)
 						  objCType: @encode(T)];
 }
 
+
+
 template <typename K=id, typename V=id>
 using object_map = std::unordered_map<K, V, object_hash<K>, object_equal<K>>;
 template <typename K=id, typename V=id>
 using object_ordered_map = std::map<K, V, object_compare<K>>;
 
 }
+
+template<size_t>
+class IndexSetRange;
+
+/**
+ * Helper iterator for `NSIndexSet` that allows it to be used with C++ iteration.
+ * In combination with `IndexSetRange`, this allows `NSIndexSet` to be used in
+ * range-based for loops.
+ */
+template<size_t cache_size=16>
+class IndexSetForwardIterator
+{
+	friend class IndexSetRange<cache_size>;
+	/**
+	 * The range of indexes that we have not yet fetched from the index set.
+	 */
+	NSRange range;
+	/**
+	 * A fast-enumeration style cache of indexes.  We must do one message send
+	 * to fill this, so larger `cache_size` will trade space for performance.
+	 */
+	std::array<NSUInteger, cache_size> cache;
+	/**
+	 * The index set that we're iterating over.
+	 */
+	NSIndexSet *set;
+	NSUInteger idx;
+	NSUInteger cache_index;
+	void fill()
+	{
+		cache_index = 0;
+		[set getIndexes: cache.data()
+		       maxCount: cache.size()
+		   inIndexRange: &range];
+	}
+public:
+	IndexSetForwardIterator(NSIndexSet *s) :
+		range({[s firstIndex], [s lastIndex] - [s firstIndex] + 1}),
+		set(s),
+		idx(0)
+	{
+		fill();
+	}
+	IndexSetForwardIterator &operator++()
+	{
+		idx++;
+		cache_index++;
+		if (cache_index >= cache.size())
+		{
+			fill();
+		}
+		return *this;
+	}
+	NSUInteger operator*()
+	{
+		return cache.at(cache_index);
+	}
+	bool operator!=(const IndexSetForwardIterator<cache_size> &o)
+	{
+		return (set != o.set) || (idx != o.idx);
+	}
+};
+
+template<size_t cache_size=16>
+class IndexSetRange
+{
+	NSIndexSet *set;
+public:
+	IndexSetRange(NSIndexSet *s) : set(s) {}
+	IndexSetForwardIterator<cache_size> begin() const
+	{
+		IndexSetForwardIterator<cache_size> i(set);
+		return i;
+	}
+	IndexSetForwardIterator<cache_size> end() const
+	{
+		IndexSetForwardIterator<cache_size> i(set);
+		i.idx = [set count];
+		return i;
+	}
+};
+
