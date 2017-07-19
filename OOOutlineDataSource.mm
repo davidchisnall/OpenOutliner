@@ -56,6 +56,39 @@
 
 auto *OOOUtlineRowsPasteboardType = @"org.theravensnest.openoutliner.internal.drag";
 
+namespace {
+/**
+ * Find the parent and indexes of all of the specified rows.  When removing rows
+ * from the outline, we must find their parents and remove them.  We don't want
+ * to remove any of the nodes where we're already removing the parents.
+ */
+void collectRowsToRemove(OOOutlineDocument *doc,
+                         NSArray<OOOutlineRow*> *rows,
+                         object_map<OOOutlineRow*, NSMutableIndexSet*> &removals)
+{
+	NSSet *set = [NSSet setWithArray: rows];
+	for (OOOutlineRow *r : rows)
+	{
+		OOOutlineRow *p = [doc parentForRow: r];
+		// Skip any where we're already removing the parent.
+		if ([set containsObject: p])
+		{
+			continue;
+		}
+		auto idx = [p.children indexOfObject: r];
+		auto &idxs = removals[p];
+		if (!idxs)
+		{
+			idxs = [NSMutableIndexSet indexSetWithIndex: idx];
+		}
+		else
+		{
+			[idxs addIndex: idx];
+		}
+	}
+}
+} // Anon namespace
+
 @implementation OOOutlineCellDelegate
 @synthesize
 	column,
@@ -330,27 +363,8 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	auto *undo = [doc undoManager];
 	NSArray<OOOutlineRow*> *rows = [[info draggingPasteboard] readObjectsForClasses: @[ [OOOutlineRow class] ] options: nil];
 	auto *insertIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange((NSUInteger)index,  [rows count])];
-	NSSet *set = [NSSet setWithArray: rows];
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
-	for (OOOutlineRow *r : rows)
-	{
-		OOOutlineRow *p = [doc parentForRow: r];
-		// Skip any where we're already removing the parent.
-		if ([set containsObject: p])
-		{
-			continue;
-		}
-		auto idx = [p.children indexOfObject: r];
-		auto &idxs = removals[p];
-		if (!idxs)
-		{
-			idxs = [NSMutableIndexSet indexSetWithIndex: idx];
-		}
-		else
-		{
-			[idxs addIndex: idx];
-		}
-	}
+	collectRowsToRemove(doc, rows, removals);
 	[undo beginUndoGrouping];
 	// Register the reload first, so that it will be invoked after undoing all
 	// of the changes.
@@ -393,7 +407,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	[pasteboard writeObjects: items];
 	return YES;
 }
-- (void)addRow: sender
+- (IBAction)addRow: sender
 {
 	auto *doc = document;
 	auto *undo = [doc undoManager];
@@ -415,6 +429,39 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	[self clearCacheAndUpdate];
 	[undo endUndoGrouping];
 	[v selectRowIndexes: [NSIndexSet indexSetWithIndex: (NSUInteger)[v rowForItem: newRow]] byExtendingSelection: NO];
+}
+- (IBAction)deleteSelectedRows:(id)sender
+{
+	NSIndexSet *selectedRows = [view selectedRowIndexes];
+	auto *v = view;
+	auto *rows = [NSMutableArray new];
+	for (auto i : IndexSetRange<>(selectedRows))
+	{
+		id item = [v itemAtRow: (NSInteger)i];
+		if ([item isKindOfClass: [OOOutlineRow class]])
+		{
+			[rows addObject: item];
+		}
+	}
+	auto *doc = document;
+	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
+	collectRowsToRemove(doc, rows, removals);
+	NSUndoManager *undo = [doc undoManager];
+	[undo beginUndoGrouping];
+	// Register the reload first, so that it will be invoked after undoing all
+	// of the changes.
+	[[undo prepareWithInvocationTarget: self] clearCacheAndUpdate];
+	[undo setActionName: _(@"delete rows")];
+	for (auto r : removals)
+	{
+		auto *toRemove = [r.first.children objectsAtIndexes: r.second];
+		[[undo prepareWithInvocationTarget: r.first.children] insertObjects: toRemove
+																  atIndexes: r.second];
+		[r.first.children removeObjectsAtIndexes: r.second];
+	}
+	[undo endUndoGrouping];
+	[self clearCacheAndUpdate];
+
 }
 #ifdef TRACE_METHOD_QUERIES
 - (BOOL)respondsToSelector:(SEL)aSelector

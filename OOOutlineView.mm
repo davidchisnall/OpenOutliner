@@ -32,10 +32,16 @@
 
 - (void)keyDown:(NSEvent *)event
 {
+	OOOutlineDataSource *delegate = self.delegate;
+	auto keycode = [event keyCode];
 	if (([event modifierFlags] & NSEventModifierFlagShift) &&
-		([event keyCode] == 36))
+		(keycode == 36))
 	{
-		[(id)self.delegate addRow: self];
+		[delegate addRow: self];
+	}
+	else if (keycode == 51)
+	{
+		[delegate deleteSelectedRows: self];
 	}
 	else
 	{

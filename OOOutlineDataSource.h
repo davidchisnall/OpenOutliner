@@ -48,4 +48,9 @@
  * instruction.
  */
 - (IBAction)addRow: (id)sender;
+/**
+ * Delete selected rows.  Invoked by the outline view or a menu in response to a
+ * delete  row UI instruction.
+ */
+- (IBAction)deleteSelectedRows: (id)sender;
 @end
