@@ -210,10 +210,7 @@ SINGLETON(Max)
 - (instancetype)initWithOO3XML: (NSXMLElement*)xml
                     inDocument: (OOOutlineDocument*)aDocument
 {
-	if (!(self = [super init]))
-	{
-		return nil;
-	}
+	OO_SUPER_INIT();
 	// FIXME: Document default title style (stored in <root><style> element.
 	title = [NSMutableAttributedString attributedStringWithOO3XML: [[xml elementForName: @"title"] elementForName: @"text"]
 	                                             withPartialStyle: nil];
