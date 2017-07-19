@@ -208,7 +208,7 @@ SINGLETON(Max)
 	width;
 
 - (instancetype)initWithOO3XML: (NSXMLElement*)xml
-					inDocument: (OOOutlineDocument*)aDocument
+                    inDocument: (OOOutlineDocument*)aDocument
 {
 	if (!(self = [super init]))
 	{
