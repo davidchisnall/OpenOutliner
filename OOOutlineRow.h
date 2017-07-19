@@ -108,6 +108,12 @@ typedef enum
 - (id)initWithOO3XMLNode: (NSXMLElement*)xml
               inDocument: (OOOutlineDocument*)aDoc;
 /**
+ * Construct a new row from OmniOutliner 2 property list.
+ */
+- (id)initWithOO2Plist: (NSDictionary*)aPlist
+           notesColumn: (NSUInteger)aColumn
+            inDocument: (OOOutlineDocument*)aDoc;
+/**
  * Serialise the row in OmniOutliner 3 XML format.
  */
 - (NSXMLElement*)oo3xmlValue;

@@ -102,6 +102,45 @@
 	[[aDoc allRows] setObject: self forKey: identifier];
 	return self;
 }
+- (id)initWithOO2Plist: (NSDictionary*)aPlist
+           notesColumn: (NSUInteger)aColumn
+            inDocument: (OOOutlineDocument*)aDoc
+{
+	if (!(self = [self initInDocument: aDoc]))
+	{
+		return nil;
+	}
+	[values removeAllObjects];
+	isExpanded = [[aPlist objectForKey: @"Expanded"] boolValue];
+	NSUInteger idx = 0;
+	NSUInteger columnIndex = 0;
+	for (NSString *child in [aPlist objectForKey: @"Cols"])
+	{
+		NSData *rtf = [child dataUsingEncoding: NSUTF8StringEncoding];
+		NSAttributedString *contents = [[NSAttributedString alloc] initWithRTF: rtf
+		                                                    documentAttributes: nil];
+		if (idx++ == aColumn)
+		{
+			if ([contents length] > 0)
+			{
+				note = [contents mutableCopy];
+			}
+		}
+		else
+		{
+			[values addObject: [[OOOutlineValue alloc] initWithValue: contents
+			                                                inColumn: [aDoc.columns objectAtIndex: columnIndex++]]];
+		}
+	}
+	for (NSDictionary *child in [aPlist objectForKey: @"Children"])
+	{
+		[children addObject: [[OOOutlineRow alloc] initWithOO2Plist: child
+														notesColumn: aColumn
+		                                                 inDocument: aDoc]];
+	}
+	return self;
+}
+
 - (NSXMLElement*)oo3xmlValue
 {
 	NSXMLElement *row = [NSXMLElement elementWithName: @"item"];

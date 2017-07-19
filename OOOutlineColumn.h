@@ -170,6 +170,14 @@ typedef enum
 - (instancetype)initWithOO3XML: (NSXMLElement*)xml
                     inDocument: (OOOutlineDocument*)aDocument;
 /**
+ * Construct the column from OmniOutliner 2 property lists.  The first is the
+ * entry from the `Columns` dictionary, the second from the `Styles dictionary.
+ */
+- (instancetype)initWithOO2Plist: (NSDictionary*)aDictionary
+                     columnIndex: (NSUInteger)anIndex
+                      inDocument: (OOOutlineDocument*)aDocument;
+
+/**
  * Encode the column as OmniOutliner 3 XML.
  */
 - (NSXMLElement*)oo3xmlValue;

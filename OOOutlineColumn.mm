@@ -207,6 +207,32 @@ SINGLETON(Max)
 	textExportWidth,
 	width;
 
+- (instancetype)initWithOO2Plist: (NSDictionary*)aDictionary
+                     columnIndex: (NSUInteger)anIndex
+                      inDocument: (OOOutlineDocument*)aDocument
+{
+	OO_SUPER_INIT();
+	NSDictionary *col = [[aDictionary objectForKey: @"Columns"] objectAtIndex: anIndex];
+	auto getValue = [&](NSString *name, auto &val)
+		{
+			val = get<typeof(val)>([col objectForKey: name]);
+		};
+	NSString *titleString;
+	getValue(@"Title", titleString);
+	title = [[NSAttributedString alloc] initWithString: titleString
+	                                        attributes: nil];
+	getValue(@"MaximumWidth", maxWidth);
+	getValue(@"MinimumWidth", minWidth);
+	getValue(@"Width", width);
+	getValue(@"Identifier", identifier);
+	document = aDocument;
+	isNoteColumn = [[aDictionary objectForKey: @"NoteColumn"] isEqualToString: identifier];
+	isOutlineColumn = [[aDictionary objectForKey: @"OutlineColumn"] isEqualToString: identifier];
+	columnType = OOOutlineColumnTypeText;
+	// FIXME: Ignore the style stuff for now.
+	return self;
+}
+
 - (instancetype)initWithOO3XML: (NSXMLElement*)xml
                     inDocument: (OOOutlineDocument*)aDocument
 {

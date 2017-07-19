@@ -239,6 +239,60 @@ static std::mutex lock;
 		[allDocs addObject: self];
 		return YES;
 	}
+	if ([typeName isEqualToString: @"OmniOutliner2"] &&
+		![fileWrapper isDirectory])
+	{
+		NSDictionary *docRoot = [NSPropertyListSerialization propertyListWithData: [fileWrapper regularFileContents]
+		                                                                  options: NSPropertyListImmutable
+		                                                                   format: nullptr
+		                                                                    error: &e];
+		if (error()) { return NO; }
+		allRows = [NSMapTable strongToWeakObjectsMapTable];
+		styleRegistry = [[OOStyleRegistry alloc] init];
+		// FIXME: Should this be something sensible?
+		titleStyle = nil;
+		columns = [NSMutableArray new];
+		NSUInteger colCount = [[docRoot objectForKey: @"Columns"] count];
+		assert(colCount > 0);
+		NSUInteger notesIdx = -1ULL;
+		for (NSUInteger i=0 ; i<colCount ; i++)
+		{
+			// FIXME: Handle default styles.
+			auto col = [[OOOutlineColumn alloc] initWithOO2Plist: docRoot
+			                                         columnIndex: i
+			                                          inDocument: self];
+			if ([col isNoteColumn])
+			{
+				noteColumn = col;
+				notesIdx = i;
+			}
+			else
+			{
+				[columns addObject: col];
+			}
+		}
+		NSDictionary *rootNode = [docRoot objectForKey: @"Root Item"];
+		assert(rootNode);
+		root = [[OOOutlineRow alloc] initInDocument: self];
+		// Window size is not encoded in OO2 files, so just pick some sane(ish) values.
+		windowWidth = 400;
+		windowHeight = 600;
+		@try
+		{
+				[root.children addObject: [[OOOutlineRow alloc] initWithOO2Plist: rootNode
+				                                                     notesColumn: notesIdx
+				                                                      inDocument: self]];
+		}
+		@catch (NSException *e)
+		{
+			NSLog(@"Exception: %@", e);
+			[NSApp reportException: e];
+			return NO;
+		}
+		std::lock_guard<std::mutex> g(lock);
+		[allDocs addObject: self];
+		return YES;
+	}
 	return NO;
 }
 - (NSString*)windowNibName
