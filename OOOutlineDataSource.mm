@@ -303,9 +303,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 		return v;
 	}
 	auto *modelColumn = [doc.columns objectAtIndex: (NSUInteger)idx];
-	auto applyStyle = [&](auto *v) {
-		v.formatter = modelColumn.formatter;
-		v.drawsBackground = NO;
+	auto setDelegate = [&](auto *v) {
 		OOOutlineCellDelegate *d = [targets[(size_t)idx+1] objectForKey: item];
 		if (!d)
 		{
@@ -316,10 +314,15 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 			d.controller = self;
 			[targets[(size_t)idx+1] setObject: d forKey: item];
 		}
-		v.allowsEditingTextAttributes = YES;
-		v.editable = YES;
 		v.target = d;
 		v.action = @selector(edited:);
+	};
+	auto applyStyle = [&](auto *v) {
+		v.formatter = modelColumn.formatter;
+		v.drawsBackground = NO;
+		v.allowsEditingTextAttributes = YES;
+		v.editable = YES;
+		setDelegate(v);
 	};
 	// If this is an enumeration, present it as a combo box, populated with the enumeration kinds.
 	if (modelColumn.columnType == OOOutlineColumnTypeEnumeration)
@@ -333,6 +336,15 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 		v.completes = YES;
 		applyStyle(v);
 		v.delegate = v.target;
+		return v;
+	}
+	else if (modelColumn.columnType == OOOutlineColumnTypeCheckBox)
+	{
+		auto *v = [NSButton new];
+		v.allowsMixedState = YES;
+		[v setButtonType: NSSwitchButton];
+		[v setTitle: @""];
+		setDelegate(v);
 		return v;
 	}
 	auto *v = [NSTextField new];

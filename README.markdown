@@ -54,12 +54,12 @@ The rough status so far is:
 
  - [x] OmniOutliner 3 files can be opened and saved with no data loss (other than printing preferences).
  - [x] OmniOutliner 2 files can be opened.  I have no plans to support saving in this format, as nothing else appears to be able to open it.
- - [ ] Support for all cell types supported by OmniOutliner 3:
+ - [x] Support for all cell types supported by OmniOutliner 3:
    - [x] Rich text
    - [x] Dates
    - [x] Numbers (including currency)
    - [x] Enumerations
-   - [ ] Checkboxes
+   - [x] Checkboxes
  - [ ] Basic Outliner functionality:
    - [ ] Creating new documents
    - [x] Editing cells

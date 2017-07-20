@@ -66,7 +66,14 @@ typedef enum
 	 * instances, but should be checked against the enumerations in the column
 	 * using only the string value.
 	 */
-	OOOutlineColumnTypeEnumeration
+	OOOutlineColumnTypeEnumeration,
+	/**
+	 * The column contains a checkbox.
+	 *
+	 * Data in these columns should be represented as an `NSNumber` 
+	 * containing a valid `NSControlStateValue`.
+	 */
+	OOOutlineColumnTypeCheckBox
 } OOOutlineColumnType;
 
 /**

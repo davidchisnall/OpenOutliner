@@ -45,6 +45,7 @@
 @interface OOOutlineDateValue : OOConcreteOutlineValue @end
 @interface OOOutlineEnumValue : OOConcreteOutlineValue @end
 @interface OOOutlineNumberValue : OOConcreteOutlineValue @end
+@interface OOOutlineCheckBoxValue : OOConcreteOutlineValue @end
 
 
 @implementation OOOutlineValue
@@ -57,6 +58,7 @@
 			{ @"enum", [OOOutlineEnumValue class] },
 			{ @"date", [OOOutlineDateValue class] },
 			{ @"number", [OOOutlineNumberValue class] },
+			{ @"checkbox", [OOOutlineCheckBoxValue class] },
 			{ @"null", [OOOutlineEmptyValue class] }
 		};
 	if (subclasses.find(xml.name) == subclasses.end())
@@ -86,6 +88,7 @@
 		{ OOOutlineColumnTypeText, [OOOutlineTextValue class] },
 		{ OOOutlineColumnTypeEnumeration, [OOOutlineEnumValue class] },
 		{ OOOutlineColumnTypeDate, [OOOutlineDateValue class] },
+		{ OOOutlineColumnTypeCheckBox, [OOOutlineCheckBoxValue class] },
 		{ OOOutlineColumnTypeNumber, [OOOutlineNumberValue class] },
 	};
 	OOOutlineColumnType columnType = [aCol columnType];
@@ -174,6 +177,7 @@
 	                         stringValue: [value description]];
 }
 @end
+
 @implementation OOOutlineNumberValue
 {
 	NSDecimalNumber *value;
@@ -204,8 +208,54 @@
 	return [NSXMLElement elementWithName: @"number"
 	                         stringValue: [value stringValue]];
 }
-
 @end
+
+@implementation OOOutlineCheckBoxValue
+{
+	NSNumber *value;
+}
+- (instancetype)initWithOO3XML: (NSXMLElement*)xml inColumn: (OOOutlineColumn*)aCol;
+{
+	OO_SUPER_INIT();
+	static object_map<NSString*, NSInteger> states =
+		{
+			{ @"checked", NSOnState },
+			{ @"unchecked", NSOffState },
+			{ @"indeterminate", NSMixedState }
+		};
+	value = [NSNumber numberWithInteger: states.at([xml stringValue])];
+	return self;
+}
+- (instancetype)initWithValue: (id)aValue inColumn: (OOOutlineColumn*)aCol
+{
+	OO_SUPER_INIT();
+	NSAssert([aValue isKindOfClass: [NSNumber class]], @"Incorrect class");
+	NSInteger v = [aValue integerValue];
+	NSAssert((v >= NSMixedState) && (v <= NSOnState), @"Invalid state!");
+	value = aValue;
+	return self;
+}
+- (NSString*)description
+{
+	return [value description];
+}
+- (id)value
+{
+	return value;
+}
+- (NSXMLElement*)oo3xmlValue
+{
+	static std::unordered_map<NSInteger, NSString*> states =
+	{
+		{ NSOnState,  @"checked" },
+		{ NSOffState, @"unchecked" },
+		{ NSMixedState, @"indeterminate" }
+	};
+	return [NSXMLElement elementWithName: @"checkbox"
+							 stringValue: states.at([value integerValue])];
+}
+@end
+
 
 
 

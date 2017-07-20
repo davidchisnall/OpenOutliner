@@ -245,7 +245,8 @@ SINGLETON(Max)
 			{ @"text", OOOutlineColumnTypeText },
 			{ @"number", OOOutlineColumnTypeNumber },
 			{ @"date", OOOutlineColumnTypeDate },
-			{ @"enumeration", OOOutlineColumnTypeEnumeration}
+			{ @"enumeration", OOOutlineColumnTypeEnumeration},
+			{ @"checkbox", OOOutlineColumnTypeCheckBox }
 		};
 	columnType = columnTypes[[[xml attributeForName: @"type"] stringValue]];
 	static object_map<NSString*, Class> summaryTypes =
