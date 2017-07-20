@@ -12,7 +12,7 @@
 				<string>ooutline</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string></string>
+			<string>DocIcon.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>OmniOutliner2</string>
 			<key>CFBundleTypeOSTypes</key>
@@ -30,7 +30,7 @@
 				<string>oo3</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string></string>
+			<string>DocIcon.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>OmniOutliner3</string>
 			<key>CFBundleTypeOSTypes</key>
