@@ -48,16 +48,44 @@ I intend to switch to using a format that preserves this information better in t
 Current status
 --------------
 
-OpenOutliner can currently open and save all of my OmniOutliner 3 files.
-There are some significant limitations that prevent it from being generally useable:
+OpenOutliner can currently open and save all of my OmniOutliner 3 files and can open all of my OmniOutliner 2 files (which OmniOutliner 5 cannot).
+There are some significant limitations that prevent it from being generally usable.
+The rough status so far is:
 
- * Columns cannot be added / removed.
- * Column properties cannot be edited.
- * Print options are not preserved.
- * Export support is currently completely absent.
- * Embedded images / movies / PDFs are currently not handled (links are).
+ - [x] OmniOutliner 3 files can be opened and saved with no data loss (other than printing preferences).
+ - [x] OmniOutliner 2 files can be opened.  I have no plans to support saving in this format, as nothing else appears to be able to open it.
+ - [ ] Support for all cell types supported by OmniOutliner 3:
+   - [x] Rich text
+   - [x] Dates
+   - [x] Numbers (including currency)
+   - [x] Enumerations
+   - [ ] Checkboxes
+ - [ ] Basic Outliner functionality:
+   - [ ] Creating new documents
+   - [x] Editing cells
+   - [x] Creating new rows
+   - [x] Deleting rows
+   - [x] Drag and drop within a document
+   - [ ] Indenting and unindenting rows
+   - [ ] Drag and drop between documents and to external editors
+   - [ ] Embedding images / other media in the document
+   - [ ] Column editing:
+     - [ ] Adding columns
+     - [ ] Removing columns
+     - [ ] Reordering columns
+     - [ ] Changing column properties (type, style, and so on)
+ - [ ] Exporting
+   - [ ] LaTeX
+   - [ ] Plain text
+   - [ ] Rich text
+   - [ ] HTML
+   - [ ] OPML (does anyone care about this?)
+ - [ ] Printing (PDF export)
+ - [ ] Non-ugly UI
+ - [ ] Filtered views on outlines
+ - [ ] Custom and per-outline-level summaries
 
-The current display is quite ugly, though just about functional.
+See the issue tracker for a more complete list of known limitations.
 
 If you have OmniOutliner 3 files for which are incorrectly handled, please file a bug report.
 
