@@ -155,11 +155,11 @@ typedef enum
  * one notes column, which defines the styling for notes and does not correspond
  * to a column in the outline view.
  */
-@property (nonatomic, readonly) BOOL isNoteColumn;
+@property (nonatomic) BOOL isNoteColumn;
 /**
  * Is this the leftmost column, which requires some special handling?
  */
-@property (nonatomic, readonly) BOOL isOutlineColumn;
+@property (nonatomic) BOOL isOutlineColumn;
 /**
  * The width of this column for text export.  Currently unused.
  *
@@ -183,7 +183,11 @@ typedef enum
 - (instancetype)initWithOO2Plist: (NSDictionary*)aDictionary
                      columnIndex: (NSUInteger)anIndex
                       inDocument: (OOOutlineDocument*)aDocument;
-
+/**
+ * Constructs a new column with the specified type.
+ */
+- (instancetype)initWithType: (OOOutlineColumnType)aType
+                  inDocument: (OOOutlineDocument*)aDocument;
 /**
  * Encode the column as OmniOutliner 3 XML.
  */

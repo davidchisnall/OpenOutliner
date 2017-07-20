@@ -303,6 +303,28 @@ static std::mutex lock;
 {
 	return [columns count];
 }
+- (id)initWithType: (NSString*)typeName
+             error: (NSError*_Nullable __autoreleasing *)outError
+{
+	OO_SUPER_INIT();
+	allRows = [NSMapTable strongToWeakObjectsMapTable];
+	styleRegistry = [[OOStyleRegistry alloc] init];
+	columns = [NSMutableArray new];
+	auto *outlineColumn = [[OOOutlineColumn alloc] initWithType: OOOutlineColumnTypeText
+	                                                 inDocument: self];
+	outlineColumn.isOutlineColumn = YES;
+	[columns addObject: outlineColumn];
+	noteColumn = [[OOOutlineColumn alloc] initWithType: OOOutlineColumnTypeText
+	                                        inDocument: self];
+	noteColumn.isNoteColumn = YES;
+	root = [[OOOutlineRow alloc] initInDocument: self];
+	windowWidth = 400;
+	windowHeight = 600;
+	[root.children addObject: [[OOOutlineRow alloc] initInDocument: self]];
+	std::lock_guard<std::mutex> g(lock);
+	[allDocs addObject: self];
+	return self;
+}
 - (OOOutlineRow*)parentForRow: (OOOutlineRow*)aRow
 {
 	std::function<OOOutlineRow*(OOOutlineRow*)> recurse;

@@ -61,7 +61,7 @@ The rough status so far is:
    - [x] Enumerations
    - [x] Checkboxes
  - [ ] Basic Outliner functionality:
-   - [ ] Creating new documents
+   - [x] Creating new documents
    - [x] Editing cells
    - [x] Creating new rows
    - [x] Deleting rows

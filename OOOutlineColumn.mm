@@ -207,6 +207,20 @@ SINGLETON(Max)
 	textExportWidth,
 	width;
 
+- (instancetype)initWithType: (OOOutlineColumnType)aType
+                  inDocument: (OOOutlineDocument*)aDocument;
+{
+	OO_SUPER_INIT();
+	title = [NSAttributedString new];
+	columnType = aType;
+	document = aDocument;
+	identifier = identifierString();
+	maxWidth = 1000000;
+	minWidth = 10;
+	width = 200;
+	return self;
+}
+
 - (instancetype)initWithOO2Plist: (NSDictionary*)aDictionary
                      columnIndex: (NSUInteger)anIndex
                       inDocument: (OOOutlineDocument*)aDocument
