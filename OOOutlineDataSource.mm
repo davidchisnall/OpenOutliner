@@ -87,6 +87,27 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 		}
 	}
 }
+
+struct scoped_undo_grouping
+{
+	NSUndoManager *undo;
+	scoped_undo_grouping(NSUndoManager *u, NSString *name) :
+		undo(u)
+	{
+		[undo beginUndoGrouping];
+		[undo setActionName: _(name)];
+		NSLog(@"");
+	}
+	template<typename T>
+	T record(T receiver)
+	{
+		return [undo prepareWithInvocationTarget: receiver];
+	}
+	~scoped_undo_grouping()
+	{
+		[undo endUndoGrouping];
+	}
+};
 } // Anon namespace
 
 @implementation OOOutlineCellDelegate
@@ -108,13 +129,10 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 	OOOutlineValue *newVal = [[[val class] alloc] initWithValue: [view objectValue]
 	                                                   inColumn: column];
 	auto *vals = row.values;
-	auto *undo = [row.document undoManager];
-	[undo beginUndoGrouping];
-	[undo setActionName: @"edit cell"];
-	[[undo prepareWithInvocationTarget: controller] clearCacheAndUpdate];
-	[[undo prepareWithInvocationTarget: vals] replaceObjectAtIndex: columnNumber
-														withObject: [vals objectAtIndex:columnNumber]];
-	[undo endUndoGrouping];
+	scoped_undo_grouping undo([row.document undoManager], @"edit cell");
+	[undo.record(controller) clearCacheAndUpdate];
+	[undo.record(vals) replaceObjectAtIndex: columnNumber
+	                             withObject: [vals objectAtIndex:columnNumber]];
 	[vals replaceObjectAtIndex: columnNumber
 	                      withObject: newVal];
 
@@ -371,18 +389,16 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
          childIndex: (NSInteger)index
 {
 	auto *doc = document;
-	auto *undo = [doc undoManager];
 	NSArray<OOOutlineRow*> *rows = [[info draggingPasteboard] readObjectsForClasses: @[ [OOOutlineRow class] ] options: nil];
 	auto *insertIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange((NSUInteger)index,  [rows count])];
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
 	collectRowsToRemove(doc, rows, removals);
-	[undo beginUndoGrouping];
+	scoped_undo_grouping undo([doc undoManager], @"move rows");
 	// Register the reload first, so that it will be invoked after undoing all
 	// of the changes.
-	[[undo prepareWithInvocationTarget: self] clearCacheAndUpdate];
-	[undo setActionName: _(@"move rows")];
+	[undo.record(self) clearCacheAndUpdate];
 	[item.children insertObjects: rows atIndexes: insertIndexes];
-	[[undo prepareWithInvocationTarget: item.children] removeObjectsAtIndexes: insertIndexes];
+	[undo.record(item.children) removeObjectsAtIndexes: insertIndexes];
 	for (auto r : removals)
 	{
 		if (r.first == item)
@@ -391,11 +407,10 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 			                                   by: (NSInteger)[rows count]];
 		}
 		auto *toRemove = [r.first.children objectsAtIndexes: r.second];
-		[[undo prepareWithInvocationTarget: r.first.children] insertObjects: toRemove
-		                                                          atIndexes: r.second];
+		[undo.record(r.first.children) insertObjects: toRemove
+		                                   atIndexes: r.second];
 		[r.first.children removeObjectsAtIndexes: r.second];
 	}
-	[undo endUndoGrouping];
 	[self clearCacheAndUpdate];
 	return YES;
 }
@@ -421,7 +436,6 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 - (IBAction)addRow: sender
 {
 	auto *doc = document;
-	auto *undo = [doc undoManager];
 	auto *v = view;
 	OOOutlineRow *selected = [v itemAtRow: [v selectedRow]];
 	OOOutlineRow *row = [doc parentForRow: selected];
@@ -432,13 +446,11 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	auto *children = row.children;
 	NSUInteger idx = selected ? [children indexOfObject: selected] + 1 : 0;
 	auto *newRow = [[OOOutlineRow alloc] initInDocument: doc];
-	[undo beginUndoGrouping];
-	[undo setActionName: @"insert row"];
-	[[undo prepareWithInvocationTarget: self] clearCacheAndUpdate];
-	[[undo prepareWithInvocationTarget: children] removeObjectAtIndex: idx];
+	scoped_undo_grouping undo([doc undoManager], @"insert row");
+	[undo.record(self) clearCacheAndUpdate];
+	[undo.record(children) removeObjectAtIndex: idx];
 	[children insertObject: newRow atIndex: idx];
 	[self clearCacheAndUpdate];
-	[undo endUndoGrouping];
 	[v selectRowIndexes: [NSIndexSet indexSetWithIndex: (NSUInteger)[v rowForItem: newRow]] byExtendingSelection: NO];
 }
 - (IBAction)deleteSelectedRows:(id)sender
@@ -457,20 +469,17 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	auto *doc = document;
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
 	collectRowsToRemove(doc, rows, removals);
-	NSUndoManager *undo = [doc undoManager];
-	[undo beginUndoGrouping];
+	scoped_undo_grouping undo([doc undoManager], @"delete rows");
 	// Register the reload first, so that it will be invoked after undoing all
 	// of the changes.
-	[[undo prepareWithInvocationTarget: self] clearCacheAndUpdate];
-	[undo setActionName: _(@"delete rows")];
+	[undo.record(self) clearCacheAndUpdate];
 	for (auto r : removals)
 	{
 		auto *toRemove = [r.first.children objectsAtIndexes: r.second];
-		[[undo prepareWithInvocationTarget: r.first.children] insertObjects: toRemove
-																  atIndexes: r.second];
+		[undo.record(r.first.children) insertObjects: toRemove
+		                                   atIndexes: r.second];
 		[r.first.children removeObjectsAtIndexes: r.second];
 	}
-	[undo endUndoGrouping];
 	[self clearCacheAndUpdate];
 
 }
