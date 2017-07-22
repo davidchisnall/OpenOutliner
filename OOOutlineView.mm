@@ -29,27 +29,6 @@
 #import "OpenOutliner.h"
 
 @implementation OOOutlineView
-- (IBAction)addRow: (id)sender;
-{
-	OOOutlineDataSource *delegate = self.delegate;
-	[delegate addRow: sender];
-}
-- (IBAction)deleteSelectedRows: (id)sender
-{
-	OOOutlineDataSource *delegate = self.delegate;
-	[delegate deleteSelectedRows: sender];
-}
-- (IBAction)increaseIndentLevel: (id)sender
-{
-	OOOutlineDataSource *delegate = self.delegate;
-	[delegate increaseIndentLevel: sender];
-}
-- (IBAction)decreaseIndentLevel: (id)sender
-{
-	OOOutlineDataSource *delegate = self.delegate;
-	[delegate decreaseIndentLevel: sender];
-}
-
 - (void)keyDown:(NSEvent *)event
 {
 	OOOutlineDataSource *delegate = self.delegate;
@@ -73,7 +52,7 @@
 			}
 			else
 			{
-				[self increaseIndentLevel: self];
+				[delegate increaseIndentLevel: self];
 			}
 			break;
 		case 51:
@@ -81,5 +60,24 @@
 			break;
 	}
 }
-
+- (BOOL)respondsToSelector: (SEL)aSelector
+{
+	// The responder chain will query whether we can respond to a particular
+	// message before sending it.  Allow us to proxy messages for the delegate
+	// to let it handle actions.
+	if ([super respondsToSelector: aSelector])
+	{
+		return YES;
+	}
+	if ([self.delegate respondsToSelector: aSelector])
+	{
+		return YES;
+	}
+	return NO;
+}
+- (id)forwardingTargetForSelector:(SEL)aSelector
+{
+	// If we don't respond to a method, let the delegate try.
+	return self.delegate;
+}
 @end
