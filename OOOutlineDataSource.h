@@ -53,4 +53,12 @@
  * delete  row UI instruction.
  */
 - (IBAction)deleteSelectedRows: (id)sender;
+/**
+ * Increase the indent level of the selected rows by one.
+ */
+- (IBAction)increaseIndentLevel: (id)sender;
+/**
+ * Decrease the indent level of the selected rows by one.
+ */
+- (IBAction)decreaseIndentLevel: (id)sender;
 @end

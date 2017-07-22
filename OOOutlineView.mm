@@ -29,23 +29,56 @@
 #import "OpenOutliner.h"
 
 @implementation OOOutlineView
+- (IBAction)addRow: (id)sender;
+{
+	OOOutlineDataSource *delegate = self.delegate;
+	[delegate addRow: sender];
+}
+- (IBAction)deleteSelectedRows: (id)sender
+{
+	OOOutlineDataSource *delegate = self.delegate;
+	[delegate deleteSelectedRows: sender];
+}
+- (IBAction)increaseIndentLevel: (id)sender
+{
+	OOOutlineDataSource *delegate = self.delegate;
+	[delegate increaseIndentLevel: sender];
+}
+- (IBAction)decreaseIndentLevel: (id)sender
+{
+	OOOutlineDataSource *delegate = self.delegate;
+	[delegate decreaseIndentLevel: sender];
+}
 
 - (void)keyDown:(NSEvent *)event
 {
 	OOOutlineDataSource *delegate = self.delegate;
 	auto keycode = [event keyCode];
-	if (([event modifierFlags] & NSEventModifierFlagShift) &&
-		(keycode == 36))
+	bool shift = [event modifierFlags] & NSEventModifierFlagShift;
+	switch (keycode)
 	{
-		[delegate addRow: self];
-	}
-	else if (keycode == 51)
-	{
-		[delegate deleteSelectedRows: self];
-	}
-	else
-	{
-		[super keyDown: event];
+		default:
+			[super keyDown: event];
+			break;
+		case 36:
+			if (shift)
+			{
+				[delegate addRow: self];
+			}
+			break;
+		case 48:
+			if (shift)
+			{
+				[delegate decreaseIndentLevel: self];
+			}
+			else
+			{
+				[self increaseIndentLevel: self];
+			}
+			break;
+		case 51:
+			[delegate deleteSelectedRows: self];
+			break;
 	}
 }
 

@@ -453,7 +453,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	[self clearCacheAndUpdate];
 	[v selectRowIndexes: [NSIndexSet indexSetWithIndex: (NSUInteger)[v rowForItem: newRow]] byExtendingSelection: NO];
 }
-- (IBAction)deleteSelectedRows:(id)sender
+- (NSArray<OOOutlineRow*>*)selectedRows
 {
 	NSIndexSet *selectedRows = [view selectedRowIndexes];
 	auto *v = view;
@@ -466,6 +466,11 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 			[rows addObject: item];
 		}
 	}
+	return rows;
+}
+- (IBAction)deleteSelectedRows:(id)sender
+{
+	auto *rows = [self selectedRows];
 	auto *doc = document;
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
 	collectRowsToRemove(doc, rows, removals);
@@ -483,6 +488,118 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	[self clearCacheAndUpdate];
 
 }
+- (NSSet<OOOutlineRow*>*)selectedRowsExcludingChildren
+{
+	auto *rows = [self selectedRows];
+	auto *rowSet = [NSMutableSet setWithArray: rows];
+	auto *doc = document;
+	// Filter out any rows that have a parent in the selection.
+	// These will be moved as a result of moving their parents.
+	for (OOOutlineRow *row : rows)
+	{
+		OOOutlineRow *parent = row;
+		while ((parent = [doc parentForRow: parent]))
+		{
+			if ([rowSet containsObject: parent])
+			{
+				[rowSet removeObject: row];
+				break;
+			}
+		}
+	}
+	return rowSet;
+}
+
+- (IBAction)increaseIndentLevel: (id)sender
+{
+	auto *v = view;
+	auto *selectedIndexes = [v selectedRowIndexes];
+	auto *rows = [self selectedRowsExcludingChildren];
+	if ([rows count] == 0)
+	{
+		return;
+	}
+	auto *doc = document;
+	scoped_undo_grouping undo([doc undoManager], @"indent");
+	[undo.record(self) clearCacheAndUpdate];
+	std::vector<OOOutlineRow*> rowsToExpand;
+	for (OOOutlineRow *row in rows)
+	{
+		auto *parent = [doc parentForRow: row];
+		NSUInteger idx = [parent.children indexOfObject: row];
+		// You can't increase the indent level of a node that is already the
+		// first child of its parent, because there's no new parent to attach it
+		// to without reordering.
+		if (idx == 0)
+		{
+			continue;
+		}
+		auto *newParent = [parent.children objectAtIndex: idx-1];
+		[undo.record(parent.children) insertObject: row atIndex: idx];
+		[undo.record(newParent.children) removeObjectAtIndex: [newParent.children count]];
+		[newParent.children addObject: row];
+		[parent.children removeObjectAtIndex: idx];
+		if (!newParent.isExpanded)
+		{
+			[undo.record(newParent) setIsExpanded: NO];
+			[newParent setIsExpanded: YES];
+		}
+		rowsToExpand.push_back(newParent);
+	}
+	[self clearCacheAndUpdate];
+	for (auto *r : rowsToExpand)
+	{
+		[v expandItem: r];
+	}
+	[v selectRowIndexes: selectedIndexes byExtendingSelection: NO];
+}
+- (void)runBlock: (void(^)(void))aBlock
+{
+	aBlock();
+}
+- (IBAction)decreaseIndentLevel: (id)sender
+{
+	auto *v = view;
+	auto *selectedIndexes = [v selectedRowIndexes];
+	auto *rows = [self selectedRowsExcludingChildren];
+	if ([rows count] == 0)
+	{
+		return;
+	}
+	auto *collapsedRows = [NSMutableArray new];
+	auto *doc = document;
+	scoped_undo_grouping undo([doc undoManager], @"unindent");
+	[undo.record(self) runBlock: ^()
+		{
+			for (OOOutlineRow *row in collapsedRows)
+			{
+				[v expandItem: row];
+			}
+		}];
+	[undo.record(self) clearCacheAndUpdate];
+	for (OOOutlineRow *row in rows)
+	{
+		auto *parent = [doc parentForRow: row];
+		auto *grandparent = [doc parentForRow: parent];
+		if (grandparent == nil)
+		{
+			continue;
+		}
+		NSUInteger newIdx = [grandparent.children indexOfObject: parent] +1;
+		NSUInteger oldIdx = [parent.children indexOfObject: row];
+		[undo.record(parent.children) insertObject: row atIndex: oldIdx];
+		[undo.record(grandparent.children) removeObjectAtIndex: newIdx];
+		[grandparent.children insertObject: row atIndex: newIdx];
+		[parent.children removeObjectAtIndex: oldIdx];
+		if ([parent isExpanded] && ([parent.children count] == 0))
+		{
+			[collapsedRows addObject: parent];
+		}
+	}
+	[v selectRowIndexes: selectedIndexes byExtendingSelection: NO];
+	[self clearCacheAndUpdate];
+}
+
 #ifdef TRACE_METHOD_QUERIES
 - (BOOL)respondsToSelector:(SEL)aSelector
 {
