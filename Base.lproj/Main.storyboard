@@ -356,7 +356,11 @@
                                                 <action selector="addRow:" target="Ady-hI-5gd" id="1UY-XD-p4i"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Delete Selected Rows" keyEquivalent="D" id="swu-of-4kM"/>
+                                        <menuItem title="Delete Selected Rows" keyEquivalent="D" id="swu-of-4kM">
+                                            <connections>
+                                                <action selector="deleteSelectedRows:" target="Ady-hI-5gd" id="V0k-28-fFw"/>
+                                            </connections>
+                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>
