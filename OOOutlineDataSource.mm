@@ -50,10 +50,6 @@
 @property (nonatomic, unsafe_unretained) OOOutlineDataSource *controller;
 @end
 
-@interface OOOutlineDataSource ()
-- (void)clearCacheAndUpdate;
-@end
-
 auto *OOOUtlineRowsPasteboardType = @"org.theravensnest.openoutliner.internal.drag";
 
 namespace {
@@ -109,6 +105,8 @@ struct scoped_undo_grouping
 };
 } // Anon namespace
 
+// FIXME: Move this into the row view and have it send a sensible delegate
+// message rather than keeping a load of transient objects for this.
 @implementation OOOutlineCellDelegate
 @synthesize
 	column,
@@ -119,17 +117,12 @@ struct scoped_undo_grouping
 - (void)edited: sender
 {
 	NSControl *view = sender;
-	if ((NSInteger)columnNumber == -1)
-	{
-		row.note = [[view attributedStringValue] copy];
-		return;
-	}
 	OOOutlineValue *val = [row.values objectAtIndex: columnNumber];
 	OOOutlineValue *newVal = [[[val class] alloc] initWithValue: [view objectValue]
 	                                                   inColumn: column];
 	auto *vals = row.values;
 	scoped_undo_grouping undo([row.document undoManager], @"edit cell");
-	[undo.record(controller) clearCacheAndUpdate];
+	[undo.record(controller.view) reloadItem: nil reloadChildren: YES];
 	[undo.record(vals) replaceObjectAtIndex: columnNumber
 	                             withObject: [vals objectAtIndex:columnNumber]];
 	[vals replaceObjectAtIndex: columnNumber
@@ -145,16 +138,17 @@ struct scoped_undo_grouping
 @implementation OOOutlineDataSource
 {
 	/**
-	 * Cache of the mapping from outline rows to children.  The children are
-	 * either other outline rows or notes.
-	 */
-	object_map<OOOutlineRow*, std::vector<id>> childNodes;
-	/**
 	 * Vector indexed by column of map tables containing weak-to-strong maps
 	 * from rows to `OOOutlineCellDelegate` instances.  This allows us to
 	 * recycle these objects.
 	 */
 	std::vector<NSMapTable*> targets;
+	/**
+	 * Weak to strong map of items to row views.  Lets us access the row view
+	 * without having to query the outline view, which could end up with 
+	 * infinite recursion.
+	 */
+	NSMapTable *rowViews;
 }
 @synthesize
 	document,
@@ -162,6 +156,7 @@ struct scoped_undo_grouping
 
 - (void)awakeFromNib
 {
+	rowViews = [NSMapTable weakToStrongObjectsMapTable];
 	OOOutlineDocument *doc = document;
 	NSOutlineView *v = view;
 	auto *cols = [doc columns];
@@ -203,13 +198,13 @@ struct scoped_undo_grouping
 
 - (id)outlineView: (NSOutlineView*)outlineView
             child: (NSInteger)index
-           ofItem: item
+           ofItem: (OOOutlineRow*)item
 {
 	if (item == nil)
 	{
 		item  = document.root;
 	}
-	return childNodes[item][(size_t)index];
+	return [item.children objectAtIndex: (NSUInteger)index];
 }
 - (BOOL)outlineView: (NSOutlineView*)outlineView
    isItemExpandable: item
@@ -217,30 +212,13 @@ struct scoped_undo_grouping
 	return [self outlineView: outlineView numberOfChildrenOfItem: item] > 0;
 }
 - (NSInteger)outlineView: (NSOutlineView*)outlineView
-  numberOfChildrenOfItem: item
+  numberOfChildrenOfItem: (OOOutlineRow*)item
 {
 	if (item == nil)
 	{
 		item  = document.root;
 	}
-	if (![item isKindOfClass: [OOOutlineRow class]])
-	{
-		return 0;
-	}
-
-	auto &children = childNodes[item];
-	if (children.empty())
-	{
-		for (OOOutlineRow *child in [item children])
-		{
-			children.push_back(child);
-			if (child.note)
-			{
-				children.push_back(child.note);
-			}
-		}
-	}
-	return (NSInteger)children.size();
+	return (NSInteger)[item.children count];
 }
 -         (id)outlineView: (NSOutlineView*)outlineView
 objectValueForTableColumn: (NSTableColumn*)tableColumn
@@ -286,39 +264,6 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	// actually a bottleneck.
 	OOOutlineDocument *doc = document;
 	NSInteger idx = get<NSInteger>([tableColumn identifier]);
-	if (tableColumn == nil)
-	{
-		NSAssert([item isKindOfClass: [NSAttributedString class]], @"Group rows should be notes");
-		NSInteger row = [outlineView rowForItem: item];
-		NSTableRowView *rv = [outlineView rowViewAtRow: row makeIfNecessary: NO];
-		NSRect b = rv ? [rv bounds] : NSMakeRect(0, 0, [view bounds].size.width, 20);
-		rv.backgroundColor = [NSColor whiteColor];
-		b.size.width -= 5;
-		auto *v = [[NSTextField alloc] initWithFrame: b];
-		v.font = [NSFont systemFontOfSize: 10];
-		v.bezeled = YES;
-		v.bezelStyle = NSTextFieldRoundedBezel;
-		NSTextFieldCell *c = v.cell;
-		v.drawsBackground = NO;
-		v.backgroundColor = [NSColor colorWithRed: 0.45
-		                                    green: 0.5
-		                                     blue: 1
-		                                    alpha: 0.5];
-		c.placeholderString = @"notes";
-		OOOutlineCellDelegate *d = [targets[0] objectForKey: item];
-		if (!d)
-		{
-			d = [OOOutlineCellDelegate new];
-			d.columnNumber = (NSUInteger)-1;
-			d.column = doc.noteColumn;
-			d.row = [outlineView itemAtRow: row - 1];
-			d.controller = self;
-			[targets[0] setObject: d forKey: item];
-		}
-		v.target = d;
-		v.action = @selector(edited:);
-		return v;
-	}
 	auto *modelColumn = [doc.columns objectAtIndex: (NSUInteger)idx];
 	auto setDelegate = [&](auto *v) {
 		OOOutlineCellDelegate *d = [targets[(size_t)idx+1] objectForKey: item];
@@ -369,17 +314,29 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	applyStyle(v);
 	return v;
 }
-
-- (CGFloat)outlineView: (NSOutlineView*)outlineView
-     heightOfRowByItem: item
+- (NSTableRowView*)outlineView: (NSOutlineView*)outlineView
+                rowViewForItem: (id)anItem
 {
-	return 20;
+	OOOutlineTableRowView *v = [rowViews objectForKey: anItem];
+	if (v == nil)
+	{
+		v = [OOOutlineTableRowView new];
+		[v setOutlineView: view];
+		[v setRow: anItem];
+		[rowViews setObject: v forKey: anItem];
+	}
+	return v;
 }
 
-- (void)clearCacheAndUpdate
+
+- (CGFloat)outlineView: (NSOutlineView*)outlineView
+     heightOfRowByItem: (OOOutlineRow*)aRow
 {
-	childNodes.clear();
-	[view reloadItem: nil reloadChildren: YES];
+	if ([aRow note] != nil)
+	{
+		return 40;
+	}
+	return 20;
 }
 
 - (BOOL)outlineView: (NSOutlineView*)outlineView
@@ -388,6 +345,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
          childIndex: (NSInteger)index
 {
 	auto *doc = document;
+	auto *v = view;
 	NSArray<OOOutlineRow*> *rows = [[info draggingPasteboard] readObjectsForClasses: @[ [OOOutlineRow class] ] options: nil];
 	auto *insertIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange((NSUInteger)index,  [rows count])];
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
@@ -395,7 +353,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	scoped_undo_grouping undo([doc undoManager], @"move rows");
 	// Register the reload first, so that it will be invoked after undoing all
 	// of the changes.
-	[undo.record(self) clearCacheAndUpdate];
+	[undo.record(v) reloadItem: nil reloadChildren: YES];
 	[item.children insertObjects: rows atIndexes: insertIndexes];
 	[undo.record(item.children) removeObjectsAtIndexes: insertIndexes];
 	for (auto r : removals)
@@ -410,7 +368,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 		                                   atIndexes: r.second];
 		[r.first.children removeObjectsAtIndexes: r.second];
 	}
-	[self clearCacheAndUpdate];
+	[v reloadItem: nil reloadChildren: YES];
 	return YES;
 }
 - (NSDragOperation)outlineView: (NSOutlineView*)outlineView
@@ -446,10 +404,10 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	NSUInteger idx = selected ? [children indexOfObject: selected] + 1 : 0;
 	auto *newRow = [[OOOutlineRow alloc] initInDocument: doc];
 	scoped_undo_grouping undo([doc undoManager], @"insert row");
-	[undo.record(self) clearCacheAndUpdate];
+	[undo.record(v) reloadItem: row reloadChildren: YES];
 	[undo.record(children) removeObjectAtIndex: idx];
 	[children insertObject: newRow atIndex: idx];
-	[self clearCacheAndUpdate];
+	[v reloadItem: row reloadChildren: YES];
 	[v selectRowIndexes: [NSIndexSet indexSetWithIndex: (NSUInteger)[v rowForItem: newRow]] byExtendingSelection: NO];
 }
 - (NSArray<OOOutlineRow*>*)selectedRows
@@ -471,12 +429,13 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 {
 	auto *rows = [self selectedRows];
 	auto *doc = document;
+	auto *v = view;
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
 	collectRowsToRemove(doc, rows, removals);
 	scoped_undo_grouping undo([doc undoManager], @"delete rows");
 	// Register the reload first, so that it will be invoked after undoing all
 	// of the changes.
-	[undo.record(self) clearCacheAndUpdate];
+	[undo.record(v) reloadItem: nil reloadChildren: YES];
 	for (auto r : removals)
 	{
 		auto *toRemove = [r.first.children objectsAtIndexes: r.second];
@@ -484,7 +443,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 		                                   atIndexes: r.second];
 		[r.first.children removeObjectsAtIndexes: r.second];
 	}
-	[self clearCacheAndUpdate];
+	[v reloadItem: nil reloadChildren: YES];
 
 }
 - (NSSet<OOOutlineRow*>*)selectedRowsExcludingChildren
@@ -520,7 +479,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	}
 	auto *doc = document;
 	scoped_undo_grouping undo([doc undoManager], @"indent");
-	[undo.record(self) clearCacheAndUpdate];
+	[undo.record(v) reloadItem: nil reloadChildren: YES];
 	std::vector<OOOutlineRow*> rowsToExpand;
 	for (OOOutlineRow *row in rows)
 	{
@@ -545,7 +504,11 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 		}
 		rowsToExpand.push_back(newParent);
 	}
-	[self clearCacheAndUpdate];
+	[v reloadItem: nil reloadChildren: YES];
+	for (OOOutlineRow *row in rows)
+	{
+		[[rowViews objectForKey: row] layout];
+	}
 	for (auto *r : rowsToExpand)
 	{
 		[v expandItem: r];
@@ -575,7 +538,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 				[v expandItem: row];
 			}
 		}];
-	[undo.record(self) clearCacheAndUpdate];
+	[undo.record(v) reloadItem: nil reloadChildren: YES];
 	for (OOOutlineRow *row in rows)
 	{
 		auto *parent = [doc parentForRow: row];
@@ -595,10 +558,35 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 			[collapsedRows addObject: parent];
 		}
 	}
+	[v reloadItem: nil reloadChildren: YES];
+	for (OOOutlineRow *row in rows)
+	{
+		[[rowViews objectForKey: row] layout];
+	}
 	[v selectRowIndexes: selectedIndexes byExtendingSelection: NO];
-	[self clearCacheAndUpdate];
 }
-
+- (IBAction)editNotes: (id)sender
+{
+	auto *v = view;
+	NSInteger selectedRow = [v selectedRow];
+	if (selectedRow == -1)
+	{
+		return;
+	}
+	OOOutlineRow *row = [v itemAtRow: selectedRow];
+	// If this is already a notes row, then don't try to add it.
+	if (![row isKindOfClass: [OOOutlineRow class]])
+	{
+		return;
+	}
+	if (![row note])
+	{
+		[row setNote: [NSMutableAttributedString new]];
+		[v noteHeightOfRowsWithIndexesChanged: [NSIndexSet indexSetWithIndex: (NSUInteger)selectedRow]];
+		[v reloadItem: row reloadChildren: YES];
+	}
+	[[rowViews objectForKey: row] editNote];
+}
 #ifdef TRACE_METHOD_QUERIES
 - (BOOL)respondsToSelector:(SEL)aSelector
 {

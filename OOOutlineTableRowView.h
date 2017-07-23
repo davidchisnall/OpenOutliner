@@ -29,6 +29,29 @@
 
 @class OOOutlineRow;
 
+/**
+ * Custom table row view for displaying a row of outline items plus notes.
+ *
+ * FIXME: This should also handle displaying a checkbox in the outline column
+ * and a show-notes icon.
+ */
 @interface OOOutlineTableRowView : NSTableRowView
+/**
+ * Sets the outline view that contains this view.
+ */
+- (void)setOutlineView: (OOOutlineView*)anOutlineView;
+/**
+ * Set the row that this row is representing.  This is a violation of MVC
+ * layering, but this view is not intended to be generic and so this simplifies
+ * the code.
+ */
 - (void)setRow: (OOOutlineRow*)aRow;
+/**
+ * Make the notes view become first responder.
+ */
+- (void)editNote;
+/**
+ * Make the first column view become first responder.
+ */
+- (void)editColumn;
 @end

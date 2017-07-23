@@ -12,6 +12,7 @@
 		288B50D41F1DF59A0012B542 /* NSColor+OO3.mm in Sources */ = {isa = PBXBuildFile; fileRef = 288B50D31F1DF59A0012B542 /* NSColor+OO3.mm */; };
 		289433331F1E390900BE841A /* OpenOutliner.icns in Resources */ = {isa = PBXBuildFile; fileRef = 289433321F1E390900BE841A /* OpenOutliner.icns */; };
 		289433351F208DC600BE841A /* DocIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 289433341F208DC600BE841A /* DocIcon.icns */; };
+		28C123231F23C23800D80BB8 /* OOOutlineTableRowView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 28C123221F23C23800D80BB8 /* OOOutlineTableRowView.mm */; };
 		28E235D61EFE4595003762C8 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 28E235D51EFE4595003762C8 /* AppDelegate.m */; };
 		28E235D91EFE4595003762C8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 28E235D81EFE4595003762C8 /* main.m */; };
 		28E235DF1EFE4595003762C8 /* OOOutlineDocument.mm in Sources */ = {isa = PBXBuildFile; fileRef = 28E235DE1EFE4595003762C8 /* OOOutlineDocument.mm */; };
@@ -41,6 +42,8 @@
 		288B50D31F1DF59A0012B542 /* NSColor+OO3.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "NSColor+OO3.mm"; sourceTree = "<group>"; };
 		289433321F1E390900BE841A /* OpenOutliner.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = OpenOutliner.icns; path = Icon/OpenOutliner.icns; sourceTree = SOURCE_ROOT; };
 		289433341F208DC600BE841A /* DocIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = DocIcon.icns; path = Icon/DocIcon.icns; sourceTree = SOURCE_ROOT; };
+		28C123211F23C23800D80BB8 /* OOOutlineTableRowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOutlineTableRowView.h; sourceTree = SOURCE_ROOT; };
+		28C123221F23C23800D80BB8 /* OOOutlineTableRowView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OOOutlineTableRowView.mm; sourceTree = SOURCE_ROOT; };
 		28E235D11EFE4595003762C8 /* OpenOutliner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenOutliner.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		28E235D41EFE4595003762C8 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		28E235D51EFE4595003762C8 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -128,6 +131,8 @@
 				28E236011EFFC47E003762C8 /* OOOutlineColumn.mm */,
 				28E235FA1EFE9D4F003762C8 /* OOOutlineDataSource.h */,
 				28E235FB1EFE9D4F003762C8 /* OOOutlineDataSource.mm */,
+				28C123211F23C23800D80BB8 /* OOOutlineTableRowView.h */,
+				28C123221F23C23800D80BB8 /* OOOutlineTableRowView.mm */,
 				28E235DD1EFE4595003762C8 /* OOOutlineDocument.h */,
 				28E235DE1EFE4595003762C8 /* OOOutlineDocument.mm */,
 				28E235EE1EFE6298003762C8 /* OOOutlineRow.h */,
@@ -245,6 +250,7 @@
 				28E2360D1F04ECED003762C8 /* NSAttributedString+OO3.mm in Sources */,
 				28EC7B311F1D365F00FB0FB9 /* OOOutlineView.mm in Sources */,
 				28E235F01EFE6298003762C8 /* OOOutlineRow.mm in Sources */,
+				28C123231F23C23800D80BB8 /* OOOutlineTableRowView.mm in Sources */,
 				28EC7B2E1F1BAFB200FB0FB9 /* OOOutlineRow+Pasteboard.mm in Sources */,
 				288B50D41F1DF59A0012B542 /* NSColor+OO3.mm in Sources */,
 				28E235D91EFE4595003762C8 /* main.m in Sources */,

@@ -61,4 +61,8 @@
  * Decrease the indent level of the selected rows by one.
  */
 - (IBAction)decreaseIndentLevel: (id)sender;
+/**
+ * Edit the notes for the selected node.
+ */
+- (IBAction)editNotes: (id)sender;
 @end

@@ -27,37 +27,82 @@
 
 #import "OpenOutliner.h"
 
-@implementation OOOutlineTableRow
+@implementation OOOutlineTableRowView
 {
+	/**
+	 * The view used for editing notes.  Will be `nil` if the row does not have 
+	 * notes.
+	 */
 	NSTextField *noteView;
+	/**
+	 * The model object for this view.
+	 */
 	OOOutlineRow *row;
+	/**
+	 * The outline view containing this row.
+	 */
+	DEBUG_WEAK OOOutlineView *outlineView;
 }
-
-- (instancetype)initWithFrame: (NSRect)frameRect
+- (void)setOutlineView: (OOOutlineView*)anOutlineView
 {
-	if (!(self = [super initWithFrame: frameRect]))
-	{
-		return nil;
-	}
-	[self setAutoresizesSubviews: NO];
-	return self;
+	outlineView = anOutlineView;
 }
+/**
+ * Action method called when the notes view is edited.
+ */
 - (IBAction)noteEdited: (id)sender
 {
-	row.note = [[sender attributedStringValue] copy];
+	auto *string = [sender attributedStringValue];
+	if ([string length] ==0)
+	{
+		row.note = nil;
+	}
+	else
+	{
+		row.note = [string mutableCopy];
+	}
 }
-- (void)setNote: (NSA)
-- (void)setRow: (OOOutlineRow*)aRow
+- (void)dealloc
 {
-	row = aRow;
-	auto *note = [aRow note];
-	if ((note != nil) && (noteView == nil))
+	[row removeObserver: self forKeyPath: @"note"];
+}
+/**
+ * Lay out the views, making sure that the notes view is below the column views
+ * and spanning the entire width.
+ */
+- (void)layout
+{
+	[super layout];
+	NSInteger numberOfColumns = [self numberOfColumns];
+	for (NSInteger i=0 ; i<numberOfColumns ; i++)
+	{
+		NSView *columnView = [self viewAtColumn: i];
+		auto frame = [columnView frame];
+		frame.size.height = 20;
+		[columnView setFrame: frame];
+	}
+	if (noteView != nil)
+	{
+		auto firstColumnFrame = [[self viewAtColumn: 0] frame];
+		auto frame = [noteView frame];
+		frame.origin.x = firstColumnFrame.origin.x;
+		frame.size.width = [self bounds].size.width - frame.origin.x;
+		[noteView setFrame: frame];
+	}
+}
+/**
+ * Handle the change of the note.  This may involve creating or destroying a
+ * view to display the note and resizing the row.
+ */
+- (void)setupNote: (NSAttributedString*)aNote
+{
+	BOOL newNote = (aNote != nil);
+	BOOL oldNote = (noteView != nil);
+	if (newNote && !oldNote)
 	{
 		NSRect b = [self bounds];
-		b.size.height += 40;
-		[self setBounds: b];
-		b.size.height = 40;
-		b.origin.x += 20;
+		b.size.height = 20;
+		b.origin.y += 20;
 		noteView = [[NSTextField alloc] initWithFrame: b];
 		// FIXME: style from note column
 		noteView.font = [NSFont systemFontOfSize: 10];
@@ -72,19 +117,58 @@
 		c.placeholderString = @"notes";
 		noteView.target = self;
 		noteView.action = @selector(noteEdited:);
+		[self addSubview: noteView];
 		[self setNeedsDisplay: YES];
 	}
-	else if (!(note == nil) && (noteView != nil))
+	else if (!newNote && oldNote)
 	{
 		[noteView removeFromSuperview];
 		noteView = nil;
 		[self setNeedsDisplay: YES];
 	}
+	if (newNote)
+	{
+		[noteView setAttributedStringValue: aNote];
+	}
+	if (newNote != oldNote)
+	{
+		auto *v = outlineView;
+		assert(v != nil);
+		NSIndexSet *idx = [NSIndexSet indexSetWithIndex: (NSUInteger)[v rowForItem: row]];
+		[v noteHeightOfRowsWithIndexesChanged: idx];
+	}
+}
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary<NSKeyValueChangeKey, id> *)change
+                       context:(void *)context
+{
+	[self setupNote: [(OOOutlineRow*)object note]];
+}
+- (void)setRow: (OOOutlineRow*)aRow
+{
+	[row removeObserver: self forKeyPath: @"note"];
+	row = aRow;
+	[aRow addObserver: self
+	       forKeyPath: @"note"
+	          options: NSKeyValueObservingOptionNew
+	          context: nullptr];
+	[self setupNote: [aRow note]];
+
+}
+- (void)editNote
+{
+	[noteView becomeFirstResponder];
+}
+- (void)editColumn
+{
+	[[self viewAtColumn: 0] becomeFirstResponder];
 }
 - (void)drawRect:(NSRect)dirtyRect
 {
+	// FIXME: Display the notes a bit better.
+	// Also display an icon to expand and contract notes.
 	[super drawRect:dirtyRect];
-	// Drawing code here.
 }
 
 @end

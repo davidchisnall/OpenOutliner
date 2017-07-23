@@ -40,6 +40,7 @@
 #import "OOOutlineDocument.h"
 #import "OOOutlineRow.h"
 #import "OOOutlineRow+Pasteboard.h"
+#import "OOOutlineTableRowView.h"
 #import "OOOutlineValue.h"
 #import "OOOutlineView.h"
 #import "OOOutlineWindowController.h"

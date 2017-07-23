@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
         <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
@@ -341,6 +341,11 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Outline" id="hg4-Qu-NKv">
                                     <items>
+                                        <menuItem title="Edit Notes" keyEquivalent="'" id="8in-xs-KK9">
+                                            <connections>
+                                                <action selector="editNotes:" target="Ady-hI-5gd" id="eRB-G7-3dd"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem title="Indent Selected Rows" keyEquivalent="]" id="r4o-PJ-a43">
                                             <connections>
                                                 <action selector="increaseIndentLevel:" target="Ady-hI-5gd" id="BQB-fd-tw4"/>

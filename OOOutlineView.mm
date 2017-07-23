@@ -34,17 +34,22 @@
 	OOOutlineDataSource *delegate = self.delegate;
 	auto keycode = [event keyCode];
 	bool shift = [event modifierFlags] & NSEventModifierFlagShift;
+	NSLog(@"keycode: %d", (int)keycode);
 	switch (keycode)
 	{
 		default:
 			[super keyDown: event];
 			break;
 		case 36:
+		{
 			if (shift)
 			{
 				[delegate addRow: self];
 			}
+			OOOutlineTableRowView *rv = [self rowViewAtRow: [self selectedRow] makeIfNecessary: NO];
+			[rv editColumn];
 			break;
+		}
 		case 48:
 			if (shift)
 			{
