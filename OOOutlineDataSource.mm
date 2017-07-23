@@ -96,7 +96,6 @@ struct scoped_undo_grouping
 	{
 		[undo beginUndoGrouping];
 		[undo setActionName: name];
-		NSLog(@"");
 	}
 	template<typename T>
 	T record(T receiver)
