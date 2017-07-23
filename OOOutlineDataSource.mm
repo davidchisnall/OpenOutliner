@@ -396,18 +396,19 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	auto *v = view;
 	OOOutlineRow *selected = [v itemAtRow: [v selectedRow]];
 	OOOutlineRow *row = [doc parentForRow: selected];
-	if (row == nil)
+	OOOutlineRow *parent = row;
+	if (row == doc.root)
 	{
-		row = doc.root;
+		parent = nil;
 	}
 	auto *children = row.children;
 	NSUInteger idx = selected ? [children indexOfObject: selected] + 1 : 0;
 	auto *newRow = [[OOOutlineRow alloc] initInDocument: doc];
 	scoped_undo_grouping undo([doc undoManager], @"insert row");
-	[undo.record(v) reloadItem: row reloadChildren: YES];
+	[undo.record(v) reloadItem: parent reloadChildren: YES];
 	[undo.record(children) removeObjectAtIndex: idx];
 	[children insertObject: newRow atIndex: idx];
-	[v reloadItem: row reloadChildren: YES];
+	[v reloadItem: parent reloadChildren: YES];
 	[v selectRowIndexes: [NSIndexSet indexSetWithIndex: (NSUInteger)[v rowForItem: newRow]] byExtendingSelection: NO];
 }
 - (NSArray<OOOutlineRow*>*)selectedRows

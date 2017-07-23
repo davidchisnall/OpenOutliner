@@ -45,6 +45,7 @@
 			if (shift)
 			{
 				[delegate addRow: self];
+				break;
 			}
 			OOOutlineTableRowView *rv = [self rowViewAtRow: [self selectedRow] makeIfNecessary: NO];
 			[rv editColumn];
