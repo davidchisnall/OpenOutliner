@@ -95,7 +95,7 @@ struct scoped_undo_grouping
 		undo(u)
 	{
 		[undo beginUndoGrouping];
-		[undo setActionName: _(name)];
+		[undo setActionName: name];
 		NSLog(@"");
 	}
 	template<typename T>
