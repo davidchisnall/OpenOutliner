@@ -70,10 +70,10 @@ The rough status so far is:
    - [ ] Drag and drop between documents and to external editors
    - [ ] Embedding images / other media in the document
    - [ ] Column editing:
-     - [ ] Adding columns
+     - [X] Adding columns
      - [ ] Removing columns
      - [ ] Reordering columns
-     - [ ] Changing column properties (type, style, and so on)
+     - [-] Changing column properties (type, style, and so on)
  - [ ] Exporting
    - [ ] LaTeX
    - [ ] Plain text

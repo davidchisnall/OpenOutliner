@@ -366,6 +366,11 @@
                                                 <action selector="deleteSelectedRows:" target="Ady-hI-5gd" id="V0k-28-fFw"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Inspect Columns" keyEquivalent="i" id="vxf-Pe-AIS">
+                                            <connections>
+                                                <action selector="inspectColumns:" target="Ady-hI-5gd" id="ErS-vp-h5Y"/>
+                                            </connections>
+                                        </menuItem>
                                     </items>
                                 </menu>
                             </menuItem>

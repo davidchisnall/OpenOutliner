@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2811E10D1F25168E00396657 /* ColumnInspector.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2811E10C1F25168E00396657 /* ColumnInspector.xib */; };
+		2811E1101F25176B00396657 /* OOColumnInspectorController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2811E10F1F25176B00396657 /* OOColumnInspectorController.mm */; };
 		2812E1E11F052B1F00A1C7EE /* OOStyleRegistry.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2812E1E01F052B1F00A1C7EE /* OOStyleRegistry.mm */; };
 		2812E1E51F079C0B00A1C7EE /* NSString+MissingCasts.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2812E1E41F079C0B00A1C7EE /* NSString+MissingCasts.mm */; };
 		288B50D41F1DF59A0012B542 /* NSColor+OO3.mm in Sources */ = {isa = PBXBuildFile; fileRef = 288B50D31F1DF59A0012B542 /* NSColor+OO3.mm */; };
@@ -33,6 +35,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2811E10C1F25168E00396657 /* ColumnInspector.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ColumnInspector.xib; sourceTree = SOURCE_ROOT; };
+		2811E10E1F25176B00396657 /* OOColumnInspectorController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOColumnInspectorController.h; sourceTree = SOURCE_ROOT; };
+		2811E10F1F25176B00396657 /* OOColumnInspectorController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OOColumnInspectorController.mm; sourceTree = SOURCE_ROOT; };
 		2812E1DF1F052B1F00A1C7EE /* OOStyleRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStyleRegistry.h; sourceTree = "<group>"; };
 		2812E1E01F052B1F00A1C7EE /* OOStyleRegistry.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OOStyleRegistry.mm; sourceTree = "<group>"; };
 		2812E1E21F05972100A1C7EE /* type_encoding_cases.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = type_encoding_cases.h; sourceTree = "<group>"; };
@@ -131,6 +136,9 @@
 				28E236011EFFC47E003762C8 /* OOOutlineColumn.mm */,
 				28E235FA1EFE9D4F003762C8 /* OOOutlineDataSource.h */,
 				28E235FB1EFE9D4F003762C8 /* OOOutlineDataSource.mm */,
+				2811E10C1F25168E00396657 /* ColumnInspector.xib */,
+				2811E10E1F25176B00396657 /* OOColumnInspectorController.h */,
+				2811E10F1F25176B00396657 /* OOColumnInspectorController.mm */,
 				28C123211F23C23800D80BB8 /* OOOutlineTableRowView.h */,
 				28C123221F23C23800D80BB8 /* OOOutlineTableRowView.mm */,
 				28E235DD1EFE4595003762C8 /* OOOutlineDocument.h */,
@@ -230,6 +238,7 @@
 				28E235E11EFE4595003762C8 /* Assets.xcassets in Resources */,
 				28E235F61EFE82E9003762C8 /* OutlineDocumentWindow.xib in Resources */,
 				28E235E41EFE4595003762C8 /* Main.storyboard in Resources */,
+				2811E10D1F25168E00396657 /* ColumnInspector.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,6 +258,7 @@
 				28E235ED1EFE5D45003762C8 /* NSData+GZIP.m in Sources */,
 				28E2360D1F04ECED003762C8 /* NSAttributedString+OO3.mm in Sources */,
 				28EC7B311F1D365F00FB0FB9 /* OOOutlineView.mm in Sources */,
+				2811E1101F25176B00396657 /* OOColumnInspectorController.mm in Sources */,
 				28E235F01EFE6298003762C8 /* OOOutlineRow.mm in Sources */,
 				28C123231F23C23800D80BB8 /* OOOutlineTableRowView.mm in Sources */,
 				28EC7B2E1F1BAFB200FB0FB9 /* OOOutlineRow+Pasteboard.mm in Sources */,

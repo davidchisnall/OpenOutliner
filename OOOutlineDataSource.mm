@@ -149,6 +149,10 @@ struct scoped_undo_grouping
 	 * infinite recursion.
 	 */
 	NSMapTable *rowViews;
+	/**
+	 * Lazily created window controller for the column inspector.
+	 */
+	OOColumnInspectorController *columnInspector;
 }
 @synthesize
 	document,
@@ -159,6 +163,7 @@ struct scoped_undo_grouping
 	rowViews = [NSMapTable weakToStrongObjectsMapTable];
 	OOOutlineDocument *doc = document;
 	NSOutlineView *v = view;
+	[v setAllowsColumnSelection: YES];
 	auto *cols = [doc columns];
 	auto *c = [cols objectAtIndex: 0];
 	auto *tc = [v outlineTableColumn];
@@ -194,8 +199,55 @@ struct scoped_undo_grouping
 		};
 	visit(doc.root);
 	[v registerForDraggedTypes: @[ OOOUtlineRowsPasteboardType ]];
+	[[NSNotificationCenter defaultCenter] addObserver: self
+	                                         selector: @selector(columnsDidChange:)
+	                                             name: OOOutlineColumnsDidChangeNotification
+	                                           object: doc];
 }
-
+- (void)dealloc
+{
+	[[NSNotificationCenter defaultCenter] removeObserver: self];
+}
+- (void)columnsDidChange: (NSNotification*)aNotification
+{
+	auto *cols = [document columns];
+	OOOutlineDocument *doc = document;
+	targets.clear();
+	NSOutlineView *v = view;
+	auto *c = [cols objectAtIndex: 0];
+	auto *tc = [v outlineTableColumn];
+	[tc setMinWidth: c.minWidth];
+	[tc setMaxWidth: c.maxWidth];
+	[tc setTitle: [c.title string]];
+	[tc setWidth: c.width];
+	[tc setIdentifier: @"0"];
+	NSUInteger removeIdx = 0;
+	while ([v numberOfColumns] > 1)
+	{
+		auto *col = [[v tableColumns] objectAtIndex: removeIdx];
+		if (col == tc)
+		{
+			removeIdx++;
+			continue;
+		}
+		[v removeTableColumn: col];
+	}
+	targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
+	targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
+	for (NSUInteger i = 1 ; i<[doc columnCount] ; i++)
+	{
+		targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
+		c = [cols objectAtIndex: i];
+		tc = [[NSTableColumn alloc] initWithIdentifier: [NSString stringWithFormat: @"%d", (int)i]];
+		[tc setMinWidth: c.minWidth];
+		[tc setMaxWidth: c.maxWidth];
+		[tc setTitle: [c.title string]];
+		[v addTableColumn: tc];
+		// Adding the column to the table will reset its width to minWidth, so we must set its width afterwards.
+		[tc setWidth: c.width];
+	}
+	[v reloadItem: nil reloadChildren: YES];
+}
 - (id)outlineView: (NSOutlineView*)outlineView
             child: (NSInteger)index
            ofItem: (OOOutlineRow*)item
@@ -587,6 +639,15 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 		[v reloadItem: row reloadChildren: YES];
 	}
 	[[rowViews objectForKey: row] editNote];
+}
+- (IBAction)inspectColumns: (id)sender
+{
+	if (columnInspector == nil)
+	{
+		columnInspector = [[OOColumnInspectorController alloc] initWithWindowNibName: @"ColumnInspector"];
+		[columnInspector setOutlineDocument: document];
+	}
+	[[columnInspector window] makeKeyAndOrderFront: self];
 }
 #ifdef TRACE_METHOD_QUERIES
 - (BOOL)respondsToSelector:(SEL)aSelector

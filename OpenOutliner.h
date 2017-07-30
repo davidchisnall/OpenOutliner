@@ -35,6 +35,7 @@
 #import "NSAttributedString+OO3.h"
 #import "NSString+MissingCasts.h"
 #import "NSXMLElement+OO.h"
+#import "OOColumnInspectorController.h"
 #import "OOOutlineColumn.h"
 #import "OOOutlineDataSource.h"
 #import "OOOutlineDocument.h"

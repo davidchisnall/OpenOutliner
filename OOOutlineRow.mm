@@ -42,6 +42,34 @@
 {
 	return [self initWithOO3XMLNode: nil inDocument: aDoc];
 }
+- (void)watchColumnsInDocument: (OOOutlineDocument*)aDoc
+{
+	for (OOOutlineColumn *col in [aDoc columns])
+	{
+		[col addObserver: self
+		      forKeyPath: @"columnType"
+		         options: 0
+		         context: nullptr];
+	}
+}
+- (void)observeValueForKeyPath: (NSString *)keyPath
+                      ofObject: (id)object
+                        change: (NSDictionary<NSKeyValueChangeKey, id> *)change
+                       context: (void *)context
+{
+	if ([@"columnType" isEqualToString: keyPath])
+	{
+		NSUInteger idx = [[document columns] indexOfObjectIdenticalTo: object];
+		if (idx != NSNotFound)
+		{
+			id val = [[values objectAtIndex: idx] value];
+			auto *newVal = [[OOOutlineValue alloc] initWithValue: val
+			                                            inColumn: object];
+			[values replaceObjectAtIndex: idx withObject: newVal];
+		}
+	}
+}
+
 - (id)initWithOO3XMLNode: (NSXMLElement*)xml
               inDocument: (OOOutlineDocument*)aDoc
 {
@@ -100,6 +128,7 @@
 		identifier = identifierString();
 	}
 	[[aDoc allRows] setObject: self forKey: identifier];
+	[self watchColumnsInDocument: aDoc];
 	return self;
 }
 - (id)initWithOO2Plist: (NSDictionary*)aPlist
@@ -138,6 +167,7 @@
 														notesColumn: aColumn
 		                                                 inDocument: aDoc]];
 	}
+	[self watchColumnsInDocument: aDoc];
 	return self;
 }
 

@@ -25,48 +25,42 @@
  *
  */
 
-#import <Cocoa/Cocoa.h>
-@class OOOutlineDocument;
-@class OOOutlineView;
 
+#import <Cocoa/Cocoa.h>
+
+@class OOOutlineDocument;
+
+@interface OOColumnInspectorController : NSWindowController
 /**
- * The controller for the outline view.
+ * The combo box for the column being inspected.
+ */
+@property (nonatomic, weak) IBOutlet NSComboBox *columnName;
+/**
+ * Set the document that this inspector refers to.
+ */
+- (void)setOutlineDocument: (OOOutlineDocument*)anOutlineDocument;
+/**
+ * Action sent from the combo box when the selected column changes (either by
+ * selecting a new column or by renaming the current one).
+ */
+- (IBAction)columnChanged: (id)sender;
+/**
+ * Action for the add column button.
+ */
+- (IBAction)addCoulumn: (id)sender;
+/**
+ * Action for the remove column button.
  *
- * FIXME: This class has a silly name.
+ * FIXME: Currently does nothing.
  */
-@interface OOOutlineDataSource : NSObject
+- (IBAction)removeCoulumn: (id)sender;
 /**
- * The document for which this object is the controller.
+ * Query whether the current column has a formatter.  Bound to the formatter
+ * text field to disable it when there is no format for the current column.
  */
-@property (nonatomic, weak) IBOutlet OOOutlineDocument *document;
+- (BOOL)hasFormatter;
 /**
- * The outline view that displays this outline.
+ * Values for the current enumeration.
  */
-@property (nonatomic, weak) IBOutlet OOOutlineView *view;
-/**
- * Add a row.  Invoked by the outline view or a menu in response to a new row UI
- * instruction.
- */
-- (IBAction)addRow: (id)sender;
-/**
- * Delete selected rows.  Invoked by the outline view or a menu in response to a
- * delete  row UI instruction.
- */
-- (IBAction)deleteSelectedRows: (id)sender;
-/**
- * Increase the indent level of the selected rows by one.
- */
-- (IBAction)increaseIndentLevel: (id)sender;
-/**
- * Decrease the indent level of the selected rows by one.
- */
-- (IBAction)decreaseIndentLevel: (id)sender;
-/**
- * Edit the notes for the selected node.
- */
-- (IBAction)editNotes: (id)sender;
-/**
- * Launches the column inspector for this document.
- */
-- (IBAction)inspectColumns: (id)sender;
+- (NSMutableArray*)enumerationValues;
 @end
