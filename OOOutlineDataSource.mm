@@ -334,9 +334,9 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 {
 	if ([aRow note] != nil)
 	{
-		return 40;
+		return 43;
 	}
-	return 20;
+	return 23;
 }
 
 - (BOOL)outlineView: (NSOutlineView*)outlineView

@@ -42,6 +42,10 @@
 	 * The outline view containing this row.
 	 */
 	DEBUG_WEAK OOOutlineView *outlineView;
+	/**
+	 * Map from column views to columns.
+	 */
+	object_map<NSView*, NSInteger> columnForViews;
 }
 - (void)setOutlineView: (OOOutlineView*)anOutlineView
 {
@@ -62,9 +66,22 @@
 		row.note = [string mutableCopy];
 	}
 }
+- (instancetype)initWithFrame:(NSRect)frameRect
+{
+	if ((self = [super initWithFrame: frameRect]) == nil)
+	{
+		return nil;
+	}
+	[self addObserver: self
+	       forKeyPath: @"numberOfColumns"
+	          options: NSKeyValueObservingOptionNew
+	          context: nullptr];
+	return self;
+}
 - (void)dealloc
 {
 	[row removeObserver: self forKeyPath: @"note"];
+	[self removeObserver: self forKeyPath: @"numberOfColumns"];
 }
 /**
  * Lay out the views, making sure that the notes view is below the column views
@@ -78,7 +95,7 @@
 	{
 		NSView *columnView = [self viewAtColumn: i];
 		auto frame = [columnView frame];
-		frame.size.height = 20;
+		frame.size.height = 23;
 		[columnView setFrame: frame];
 	}
 	if (noteView != nil)
@@ -102,18 +119,13 @@
 	{
 		NSRect b = [self bounds];
 		b.size.height = 20;
-		b.origin.y += 20;
+		b.origin.y += 23;
 		noteView = [[NSTextField alloc] initWithFrame: b];
 		// FIXME: style from note column
 		noteView.font = [NSFont systemFontOfSize: 10];
 		noteView.bezeled = YES;
 		noteView.bezelStyle = NSTextFieldRoundedBezel;
 		NSTextFieldCell *c = noteView.cell;
-		noteView.drawsBackground = NO;
-		noteView.backgroundColor = [NSColor colorWithRed: 0.45
-		                                           green: 0.5
-		                                            blue: 1
-		                                           alpha: 0.5];
 		c.placeholderString = @"notes";
 		noteView.target = self;
 		noteView.action = @selector(noteEdited:);
@@ -143,7 +155,19 @@
                         change:(NSDictionary<NSKeyValueChangeKey, id> *)change
                        context:(void *)context
 {
-	[self setupNote: [(OOOutlineRow*)object note]];
+	if ([@"note" isEqualToString: keyPath])
+	{
+		[self setupNote: [(OOOutlineRow*)object note]];
+	}
+	else if ([@"numberOfColumns" isEqualToString: keyPath])
+	{
+		columnForViews.clear();
+		NSInteger numberOfColumns = [self numberOfColumns];
+		for (NSInteger i=0 ; i<numberOfColumns ; i++)
+		{
+			columnForViews[[self viewAtColumn: i]] = i;
+		}
+	}
 }
 - (void)setRow: (OOOutlineRow*)aRow
 {
