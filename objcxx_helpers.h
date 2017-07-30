@@ -239,3 +239,26 @@ public:
 	}
 };
 
+template<typename T>
+class ScopedKVOValueChange
+{
+	T *obj;
+	NSString *key;
+public:
+	~ScopedKVOValueChange()
+	{
+		[obj didChangeValueForKey: key];
+	}
+	ScopedKVOValueChange(T *o, NSString *k) : obj(o), key(k)
+	{
+		assert(obj != nil);
+		assert(key != nil);
+		[obj willChangeValueForKey: key];
+	}
+};
+template<typename T>
+ScopedKVOValueChange<T> makeScopedKVOValueChange(T *obj, NSString *key)
+{
+	return ScopedKVOValueChange<T>(obj, key);
+}
+
