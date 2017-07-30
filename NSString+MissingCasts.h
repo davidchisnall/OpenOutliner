@@ -55,3 +55,10 @@
  */
 - (NSString*)stringValue;
 @end
+
+@interface NSAttributedString (MissingCasts)
+/**
+ * Return the attributed string as a string.
+ */
+- (NSString*)stringValue;
+@end

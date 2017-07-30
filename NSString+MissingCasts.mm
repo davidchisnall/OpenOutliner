@@ -53,3 +53,10 @@
 	return [self copy];
 }
 @end
+
+@implementation NSAttributedString (MissingCasts)
+- (NSString*)stringValue
+{
+	return [[self string] copy];
+}
+@end
