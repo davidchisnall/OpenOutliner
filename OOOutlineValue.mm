@@ -145,7 +145,7 @@
 {
 	NSDate *value;
 }
-- (instancetype)initWithOO3XML: (NSXMLElement*)xml  inColumn: (OOOutlineColumn*)aCol
+- (instancetype)initWithOO3XML: (NSXMLElement*)xml inColumn: (OOOutlineColumn*)aCol
 {
 	OO_SUPER_INIT();
 	value = [NSDate dateWithString: [xml stringValue]];
@@ -252,7 +252,7 @@
 		{ NSMixedState, @"indeterminate" }
 	};
 	return [NSXMLElement elementWithName: @"checkbox"
-							 stringValue: states.at([value integerValue])];
+	                         stringValue: states.at([value integerValue])];
 }
 @end
 
