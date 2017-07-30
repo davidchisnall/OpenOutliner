@@ -41,7 +41,7 @@
 /**
  * The format string.  This string is of a format compatible with `strptime`.
  */
-@property (nonatomic) NSString *formatString;
+@property (nonatomic, copy) NSString *format;
 /**
  * Construct a date from the specified string.
  */

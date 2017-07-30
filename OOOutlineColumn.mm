@@ -307,7 +307,7 @@ SINGLETON(Max)
 		{
 			auto *df = [OOUNIXDateFormatter new];
 			// FIXME: allow-natural-language ?
-			df.formatString = [f stringValue];
+			df.format = [f stringValue];
 			formatter = df;
 		}
 		else
@@ -379,7 +379,7 @@ SINGLETON(Max)
 		else if ([formatter isKindOfClass: [OOUNIXDateFormatter class]])
 		{
 			type = @"date";
-			formatString = [(OOUNIXDateFormatter*)formatter formatString];
+			formatString = [(OOUNIXDateFormatter*)formatter format];
 		}
 		NSAssert(formatString != nil, @"format string must not be nil!");
 		NSXMLElement *formatterElement = [NSXMLElement elementWithName: @"formatter"

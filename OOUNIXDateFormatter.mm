@@ -29,11 +29,11 @@
 #include <vector>
 
 @implementation OOUNIXDateFormatter
-@synthesize formatString;
+@synthesize format;
 - (NSDate*)dateFromString: (NSString*)aString
 {
 	struct tm time;
-	strptime([aString UTF8String], [formatString UTF8String], &time);
+	strptime([aString UTF8String], [format UTF8String], &time);
 	auto interval = timelocal(&time);
 	return [NSDate dateWithTimeIntervalSince1970: interval];
 }
@@ -66,7 +66,7 @@
 	time_t interval = (time_t)[aDate timeIntervalSince1970];
 	time = *localtime(&interval);
 	// Keep doubling the buffer until it works.
-	while (strftime(buf.data(), buf.capacity(), [formatString UTF8String], &time) == 0)
+	while (strftime(buf.data(), buf.capacity(), [format UTF8String], &time) == 0)
 	{
 		buf.reserve(buf.capacity()*2);
 	}
