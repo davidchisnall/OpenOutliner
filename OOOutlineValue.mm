@@ -83,6 +83,10 @@
 }
 - (instancetype)initWithValue: (id)aValue inColumn: (OOOutlineColumn*)aCol
 {
+	if (aValue == nil)
+	{
+		return [OOOutlineValue placeholder];
+	}
 	static std::unordered_map<OOOutlineColumnType, Class> subclasses =
 	{
 		{ OOOutlineColumnTypeText, [OOOutlineTextValue class] },
@@ -122,6 +126,10 @@
 	{
 		aValue = [[NSAttributedString alloc] initWithString: aValue];
 	}
+	else if (![aValue isKindOfClass: [NSAttributedString class]])
+	{
+		aValue = [[NSAttributedString alloc] initWithString: [aValue stringValue]];
+	}
 	NSAssert([aValue isKindOfClass: [NSAttributedString class]], @"Incorrect class");
 	value = [aValue mutableCopy];
 	column = aCol;
@@ -154,6 +162,10 @@
 - (instancetype)initWithValue: (id)aValue inColumn: (OOOutlineColumn*)aCol
 {
 	OO_SUPER_INIT();
+	if (![aValue isKindOfClass: [NSDate class]])
+	{
+		aValue = [NSDate dateWithString: [aValue stringValue]];
+	}
 	NSAssert([aValue isKindOfClass: [NSDate class]], @"Incorrect class");
 	value = [aValue mutableCopy];
 	return self;
@@ -191,6 +203,10 @@
 - (instancetype)initWithValue: (id)aValue inColumn: (OOOutlineColumn*)aCol
 {
 	OO_SUPER_INIT();
+	if (![aValue isKindOfClass: [NSDecimalNumber class]])
+	{
+		aValue = [NSDecimalNumber decimalNumberWithString: [aValue stringValue]];
+	}
 	NSAssert([aValue isKindOfClass: [NSDecimalNumber class]], @"Incorrect class");
 	value = aValue;
 	return self;
