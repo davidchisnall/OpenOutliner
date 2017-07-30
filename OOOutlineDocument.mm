@@ -28,17 +28,43 @@
 #import "OpenOutliner.h"
 #import <mutex>
 
+namespace {
 /**
  * Array of all documents, protected by `lock` from concurrent access.
  */
-static NSMutableArray<OOOutlineDocument*> *allDocs;
+NSMutableArray<OOOutlineDocument*> *allDocs;
 /**
  * Lock that protects `allDocs`.
  */
-static std::mutex lock;
+std::mutex lock;
 
+/**
+ * Visit all of the rows in a depth-first pattern.
+ */
+template<typename T>
+bool visitRows(OOOutlineRow *aRow, T &&aVisitor)
+{
+	if (aVisitor(aRow))
+	{
+		return true;
+	}
+	for (OOOutlineRow *child in [aRow children])
+	{
+		if (visitRows(child, aVisitor))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+}
+
+NSString *const OOOutlineColumnsDidChangeNotification = @"OOOutlineColumnsDidChangeNotification";
 
 @implementation OOOutlineDocument
+{
+	NSMutableArray<OOOutlineColumn*> *columns;
+}
 @synthesize
 	allRows,
 	columns,
@@ -344,5 +370,18 @@ static std::mutex lock;
 			return nil;
 		};
 	return recurse(root);
+}
+- (void)addColumn: (OOOutlineColumn*)aColumn
+{
+	[columns addObject: aColumn];
+	// FIXME: Add undo operation
+	visitRows(root, [&](OOOutlineRow *aRow)
+		{
+			[[aRow values] addObject: [OOOutlineValue placeholder]];
+			return false;
+		});
+	// FIXME: Userinfo dictionary should probably contain the column.
+	[[NSNotificationCenter defaultCenter] postNotificationName: OOOutlineColumnsDidChangeNotification
+	                                                    object: self];
 }
 @end

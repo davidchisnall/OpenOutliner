@@ -32,6 +32,11 @@
 @class OOStyleRegistry;
 
 /**
+ * Notification posted when the number or format of columns change.
+ */
+extern NSString *const OOOutlineColumnsDidChangeNotification;
+
+/**
  * An outline document
  */
 @interface OOOutlineDocument : NSDocument
@@ -50,7 +55,7 @@
  * FIXME: This returns a mutable array, but currently modifying it will break
  * all of the things.
  */
-@property (nonatomic, readonly) NSMutableArray<OOOutlineColumn*> *columns;
+@property (nonatomic, readonly) NSArray<OOOutlineColumn*> *columns;
 /**
  * The notes column, providing properties that should be applied to all notes.
  */
@@ -87,4 +92,12 @@
  * Find the parent for a specified row.
  */
 - (OOOutlineRow*)parentForRow: (OOOutlineRow*)aRow;
+/**
+ * Add a column to the document.  This will also insert an empty value into 
+ * each row.
+ *
+ * Posts an `OOOutlineColumnsDidChangeNotification` notification when the new
+ * column has been added.
+ */
+- (void)addColumn: (OOOutlineColumn*)aColumn;
 @end
