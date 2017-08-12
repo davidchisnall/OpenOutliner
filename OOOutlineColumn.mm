@@ -190,6 +190,14 @@ SINGLETON(Max)
 	 * The document containing this column.
 	 */
 	DEBUG_WEAK OOOutlineDocument *document;
+	/**
+	 * Flag indicating that the text export width needs updating.
+	 */
+	BOOL textExportWidthDirty;
+	/**
+	 * The text export width.
+	 */
+	NSUInteger textExportWidth;
 }
 @synthesize
 	title,
@@ -204,7 +212,6 @@ SINGLETON(Max)
 	minWidth,
 	style,
 	summary,
-	textExportWidth,
 	width;
 
 - (instancetype)initWithType: (OOOutlineColumnType)aType
@@ -347,7 +354,7 @@ SINGLETON(Max)
 									  @"width" : [NSString stringWithFormat: @"%ld", (long)width],
 									  @"minimum-width" : [NSString stringWithFormat: @"%ld", (long)minWidth],
 									  @"maximum-width" : [NSString stringWithFormat: @"%ld", (long)maxWidth],
-									  @"text-export-width" : [NSString stringWithFormat: @"%ld", (long)textExportWidth]
+									  @"text-export-width" : [NSString stringWithFormat: @"%ld", (long)self.textExportWidth]
 									 }];
 	auto flag = [&](BOOL flag, NSString *name)
 	{
@@ -402,5 +409,42 @@ SINGLETON(Max)
 		[col addChild: enumList];
 	}
 	return col;
+}
+- (id)value: (OOOutlineValue*)aValue willChangeTo: (OOOutlineValue*)aNewValue
+{
+	// FIXME: Don't do this if we're changing a value that's shorter than the
+	// old one.
+	textExportWidthDirty = YES;
+	return aNewValue;
+}
+- (NSUInteger)textExportWidth
+{
+	auto *doc = document;
+	if (textExportWidthDirty)
+	{
+		NSUInteger colNumber = 0;
+		for (OOOutlineColumn *col in doc.columns)
+		{
+			if (col == self)
+			{
+				break;
+			}
+			colNumber++;
+		}
+		NSUInteger w = 0;
+		std::function<void(OOOutlineRow*)> visit = [&](OOOutlineRow *r)
+			{
+				NSString *s = get<NSString*>([[r.values objectAtIndex: colNumber] value]);
+				w = std::max(w, [s length]);
+				for (OOOutlineRow *child in r.children)
+				{
+					visit(child);
+				}
+			};
+		visit(doc.root);
+		textExportWidth = w;
+		textExportWidthDirty = NO;
+	}
+	return textExportWidth;
 }
 @end

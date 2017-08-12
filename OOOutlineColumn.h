@@ -161,12 +161,9 @@ typedef enum
  */
 @property (nonatomic) BOOL isOutlineColumn;
 /**
- * The width of this column for text export.  Currently unused.
- *
- * FIXME: This should be updated when text in the column is changed, to provide
- * the maximum width of the column.
+ * The width of this column for text export.
  */
-@property (nonatomic) NSUInteger textExportWidth;
+@property (readonly, nonatomic) NSUInteger textExportWidth;
 /**
  * The style properties for this coulmn.
  */
@@ -192,4 +189,9 @@ typedef enum
  * Encode the column as OmniOutliner 3 XML.
  */
 - (NSXMLElement*)oo3xmlValue;
+/**
+ * Notify the column that a value will change.  This can be used for the column
+ * to perform additional validation and update any internal state.
+ */
+- (id)value: (OOOutlineValue*)aValue willChangeTo: (OOOutlineValue*)aNewValue;
 @end

@@ -238,6 +238,8 @@
 	scoped_undo_grouping undo([doc undoManager], @"edit cell");
 	OOOutlineView *parent = (OOOutlineView*)[self superview];
 	NSAssert([parent isKindOfClass: [OOOutlineView class]], @"Incorrect superview!");
+	auto *oldValue = [vals objectAtIndex: columnNumber];
+	newVal = [column value: oldValue willChangeTo: newVal];
 	[undo.record(parent) reloadItem: nil reloadChildren: YES];
 	[undo.record(vals) replaceObjectAtIndex: columnNumber
 	                             withObject: [vals objectAtIndex:columnNumber]];
