@@ -262,3 +262,39 @@ ScopedKVOValueChange<T> makeScopedKVOValueChange(T *obj, NSString *key)
 	return ScopedKVOValueChange<T>(obj, key);
 }
 
+/**
+ * Wrapper around `NSUndoManager` that uses scoping to control the lifetime of a
+ * group.
+ */
+struct scoped_undo_grouping
+{
+	/**
+	 * Constructor.  Takes the undo manager and the name of the group as
+	 * arguments.
+	 */
+	scoped_undo_grouping(NSUndoManager *u, NSString *name) :
+		undo(u)
+	{
+		[undo beginUndoGrouping];
+		[undo setActionName: name];
+	}
+	/**
+	 * Record an action.  Returns an invocation target with the static type
+	 * matching the argument type.
+	 */
+	template<typename T>
+	T record(T receiver)
+	{
+		return [undo prepareWithInvocationTarget: receiver];
+	}
+	/**
+	 * Destructor.  Ends the undo grouping.
+	 */
+	~scoped_undo_grouping()
+	{
+		[undo endUndoGrouping];
+	}
+private:
+	NSUndoManager *undo;
+};
+

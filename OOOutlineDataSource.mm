@@ -84,25 +84,6 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 	}
 }
 
-struct scoped_undo_grouping
-{
-	NSUndoManager *undo;
-	scoped_undo_grouping(NSUndoManager *u, NSString *name) :
-		undo(u)
-	{
-		[undo beginUndoGrouping];
-		[undo setActionName: name];
-	}
-	template<typename T>
-	T record(T receiver)
-	{
-		return [undo prepareWithInvocationTarget: receiver];
-	}
-	~scoped_undo_grouping()
-	{
-		[undo endUndoGrouping];
-	}
-};
 } // Anon namespace
 
 // FIXME: Move this into the row view and have it send a sensible delegate
