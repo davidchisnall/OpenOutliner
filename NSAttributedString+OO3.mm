@@ -89,7 +89,6 @@
 }
 - (NSXMLElement*)oo3xmlValueWithPartialStyle: (OOPartialStyle*)aPartialStyle
 {
-	// FIXME: We currently ignore all of the styles, which makes this somewhat pointless.
 	NSXMLElement *text = [NSXMLElement elementWithName: @"text"];
 	NSUInteger i = 0;
 	NSUInteger len = [self length];
