@@ -86,36 +86,6 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 
 } // Anon namespace
 
-// FIXME: Move this into the row view and have it send a sensible delegate
-// message rather than keeping a load of transient objects for this.
-@implementation OOOutlineCellDelegate
-@synthesize
-	column,
-	columnNumber,
-	controller,
-	row;
-
-- (void)edited: sender
-{
-	NSControl *view = sender;
-	OOOutlineValue *val = [row.values objectAtIndex: columnNumber];
-	OOOutlineValue *newVal = [[[val class] alloc] initWithValue: [view objectValue]
-	                                                   inColumn: column];
-	auto *vals = row.values;
-	scoped_undo_grouping undo([row.document undoManager], @"edit cell");
-	[undo.record(controller.view) reloadItem: nil reloadChildren: YES];
-	[undo.record(vals) replaceObjectAtIndex: columnNumber
-	                             withObject: [vals objectAtIndex:columnNumber]];
-	[vals replaceObjectAtIndex: columnNumber
-	                      withObject: newVal];
-
-}
-- (void)comboBoxSelectionDidChange: (NSNotification*)aNotification
-{
-	[self edited: [aNotification object]];
-}
-@end
-
 @implementation OOOutlineDataSource
 {
 	/**
@@ -298,26 +268,11 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	OOOutlineDocument *doc = document;
 	NSInteger idx = get<NSInteger>([tableColumn identifier]);
 	auto *modelColumn = [doc.columns objectAtIndex: (NSUInteger)idx];
-	auto setDelegate = [&](auto *v) {
-		OOOutlineCellDelegate *d = [targets[(size_t)idx+1] objectForKey: item];
-		if (!d)
-		{
-			d = [OOOutlineCellDelegate new];
-			d.columnNumber = (NSUInteger)idx;
-			d.column = [doc.columns objectAtIndex: (NSUInteger)idx];
-			d.row = item;
-			d.controller = self;
-			[targets[(size_t)idx+1] setObject: d forKey: item];
-		}
-		v.target = d;
-		v.action = @selector(edited:);
-	};
 	auto applyStyle = [&](auto *v) {
 		v.formatter = modelColumn.formatter;
 		v.drawsBackground = NO;
 		v.allowsEditingTextAttributes = YES;
 		v.editable = YES;
-		setDelegate(v);
 	};
 	// If this is an enumeration, present it as a combo box, populated with the enumeration kinds.
 	if (modelColumn.columnType == OOOutlineColumnTypeEnumeration)
@@ -339,7 +294,6 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 		v.allowsMixedState = YES;
 		[v setButtonType: NSSwitchButton];
 		[v setTitle: @""];
-		setDelegate(v);
 		return v;
 	}
 	auto *v = [NSTextField new];

@@ -194,5 +194,60 @@
 	// Also display an icon to expand and contract notes.
 	[super drawRect:dirtyRect];
 }
+- (void)addSubview: (NSView*)view
+{
+	[super addSubview: view];
+	if (view == noteView)
+	{
+		return;
+	}
+	if ([view respondsToSelector: @selector(setDelegate:)])
+	{
+		[(id)view setDelegate: self];
+	}
+	NSAssert([view isKindOfClass: [NSControl class]], @"Column view is not a control!");
+	auto *control = (NSControl*)view;
+	control.target = self;
+	control.action = @selector(edited:);
+}
+- (void)willRemoveSubview: (NSView*)view
+{
+	[super willRemoveSubview: view];
+	if (view == noteView)
+	{
+		return;
+	}
+	if ([view respondsToSelector: @selector(setDelegate:)])
+	{
+		[(id)view setDelegate: nil];
+	}
+	NSAssert([view isKindOfClass: [NSControl class]], @"Column view is not a control!");
+	auto *control = (NSControl*)view;
+	control.target = nil;
+}
+- (void)edited: sender
+{
+	NSUInteger columnNumber = (NSUInteger)columnForViews[sender];
+	auto *doc = row.document;
+	auto *column = [doc.columns objectAtIndex: columnNumber];
+	NSControl *view = sender;
+	OOOutlineValue *val = [row.values objectAtIndex: columnNumber];
+	OOOutlineValue *newVal = [[[val class] alloc] initWithValue: [view objectValue]
+	                                                   inColumn: column];
+	auto *vals = row.values;
+	scoped_undo_grouping undo([doc undoManager], @"edit cell");
+	OOOutlineView *parent = (OOOutlineView*)[self superview];
+	NSAssert([parent isKindOfClass: [OOOutlineView class]], @"Incorrect superview!");
+	[undo.record(parent) reloadItem: nil reloadChildren: YES];
+	[undo.record(vals) replaceObjectAtIndex: columnNumber
+	                             withObject: [vals objectAtIndex:columnNumber]];
+	[vals replaceObjectAtIndex: columnNumber
+	                withObject: newVal];
+
+}
+- (void)comboBoxSelectionDidChange: (NSNotification*)aNotification
+{
+	[self edited: [aNotification object]];
+}
 
 @end
