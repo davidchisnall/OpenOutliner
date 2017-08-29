@@ -322,6 +322,11 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 {
 	auto *doc = document;
 	auto *v = view;
+	if (item == nil)
+	{
+		item = doc.root;
+	}
+	// FIXME: Handle index == -1 correctly
 	NSArray<OOOutlineRow*> *rows = [[info draggingPasteboard] readObjectsForClasses: @[ [OOOutlineRow class] ] options: nil];
 	auto *insertIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange((NSUInteger)index, [rows count])];
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
