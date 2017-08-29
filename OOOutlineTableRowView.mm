@@ -179,7 +179,16 @@
 - (void)addSubview: (NSView*)view
 {
 	[super addSubview: view];
-	if (view == noteView)
+	BOOL found = NO;
+	for (NSInteger i=0, e=[self numberOfColumns] ; i<e ; i++)
+	{
+		if (view == [self viewAtColumn: i])
+		{
+			found = YES;
+			break;
+		}
+	}
+	if (!found)
 	{
 		return;
 	}
