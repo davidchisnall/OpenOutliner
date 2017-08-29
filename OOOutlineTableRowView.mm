@@ -42,10 +42,6 @@
 	 * The outline view containing this row.
 	 */
 	DEBUG_WEAK OOOutlineView *outlineView;
-	/**
-	 * Map from column views to columns.
-	 */
-	object_map<NSView*, NSInteger> columnForViews;
 }
 - (void)setOutlineView: (OOOutlineView*)anOutlineView
 {
@@ -72,16 +68,11 @@
 	{
 		return nil;
 	}
-	[self addObserver: self
-	       forKeyPath: @"numberOfColumns"
-	          options: NSKeyValueObservingOptionNew
-	          context: nullptr];
 	return self;
 }
 - (void)dealloc
 {
 	[row removeObserver: self forKeyPath: @"note"];
-	[self removeObserver: self forKeyPath: @"numberOfColumns"];
 }
 /**
  * Lay out the views, making sure that the notes view is below the column views
@@ -159,15 +150,6 @@
 	{
 		[self setupNote: [(OOOutlineRow*)object note]];
 	}
-	else if ([@"numberOfColumns" isEqualToString: keyPath])
-	{
-		columnForViews.clear();
-		NSInteger numberOfColumns = [self numberOfColumns];
-		for (NSInteger i=0 ; i<numberOfColumns ; i++)
-		{
-			columnForViews[[self viewAtColumn: i]] = i;
-		}
-	}
 }
 - (void)setRow: (OOOutlineRow*)aRow
 {
@@ -227,7 +209,19 @@
 }
 - (void)edited: sender
 {
-	NSUInteger columnNumber = (NSUInteger)columnForViews[sender];
+	NSUInteger columnNumber = -1;
+	for (NSInteger i=0, e=[self numberOfColumns] ; i<e ; i++)
+	{
+		if (sender == [self viewAtColumn: i])
+		{
+			columnNumber = i;
+			break;
+		}
+	}
+	if (columnNumber == -1)
+	{
+		return;
+	}
 	auto *doc = row.document;
 	auto *column = [doc.columns objectAtIndex: columnNumber];
 	NSControl *view = sender;
