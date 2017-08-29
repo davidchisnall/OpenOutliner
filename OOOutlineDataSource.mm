@@ -117,8 +117,6 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 	[tc setTitle: [c.title string]];
 	[tc setWidth: c.width];
 	[tc setIdentifier: @"0"];
-	targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
-	targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
 	for (NSUInteger i = 1 ; i<[doc columnCount] ; i++)
 	{
 		c = [cols objectAtIndex: i];
@@ -129,7 +127,6 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 		[v addTableColumn: tc];
 		// Adding the column to the table will reset its width to minWidth, so we must set its width afterwards.
 		[tc setWidth: c.width];
-		targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
 	}
 	std::function<void(OOOutlineRow*)> visit = [&](OOOutlineRow *r)
 		{
@@ -157,7 +154,6 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 {
 	auto *cols = [document columns];
 	OOOutlineDocument *doc = document;
-	targets.clear();
 	NSOutlineView *v = view;
 	auto *c = [cols objectAtIndex: 0];
 	auto *tc = [v outlineTableColumn];
@@ -177,11 +173,8 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 		}
 		[v removeTableColumn: col];
 	}
-	targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
-	targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
 	for (NSUInteger i = 1 ; i<[doc columnCount] ; i++)
 	{
-		targets.push_back([NSMapTable weakToStrongObjectsMapTable]);
 		c = [cols objectAtIndex: i];
 		tc = [[NSTableColumn alloc] initWithIdentifier: [NSString stringWithFormat: @"%d", (int)i]];
 		[tc setMinWidth: c.minWidth];
