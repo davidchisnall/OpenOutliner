@@ -167,7 +167,7 @@
 		aValue = [NSDate dateWithString: [aValue stringValue]];
 	}
 	NSAssert([aValue isKindOfClass: [NSDate class]], @"Incorrect class");
-	value = [aValue mutableCopy];
+	value = aValue;
 	return self;
 }
 - (NSString*)description
