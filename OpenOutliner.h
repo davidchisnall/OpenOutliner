@@ -60,6 +60,12 @@
  * of the rows, within the current document.
  */
 extern NSString *OOOUtlineRowsPasteboardType;
+/**
+ * Pasteboard type for outline rows between documents, or with copy and paste
+ * (where the original may not exist at paste time).  The pasteboard stores the
+ * (string) OmniOutliner 3 XML representation.
+ */
+extern NSString *OOOUtlineXMLPasteboardType;
 
 /**
  * Macro for defining an abstract method.  Throws an exception if invoked.
@@ -90,8 +96,10 @@ extern NSString *OOOUtlineRowsPasteboardType;
  */
 #ifdef NDEBUG
 #define DEBUG_WEAK __unsafe_unreatained
+#define DEBUG_WEAK_PROPERTY unsafe_unreatained
 #else
 #define DEBUG_WEAK __weak
+#define DEBUG_WEAK_PROPERTY weak
 #endif
 
 /**

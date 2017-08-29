@@ -69,4 +69,16 @@
  * Launches the column inspector for this document.
  */
 - (IBAction)inspectColumns: (id)sender;
+/**
+ * Inserts rows from a pasteboard.
+ */
+- (void)pasteFromPasteboard: (NSPasteboard*)aPasteboard;
+/**
+ * Returns true if copy UI elements should be enabled.
+ */
+- (BOOL)canCopy;
+/**
+ * Returns true if paste UI elements should be enabled.
+ */
+- (BOOL)canPaste;
 @end

@@ -29,6 +29,14 @@
 #import <AppKit/AppKit.h>
 
 /**
+ * The current document.  This is required so that pasted rows know which object
+ * they should be associated with.  Should be `nil` outside of a paste
+ * operation.
+ */
+extern thread_local OOOutlineDocument __unsafe_unretained *currentDocument;
+
+
+/**
  * Category adding support for pasteboard serialisation and deserialisation to
  * outline rows.
  */

@@ -27,6 +27,7 @@
 
 
 #import "OpenOutliner.h"
+#import "objc/runtime.h"
 
 @implementation OOOutlineView
 - (void)keyDown:(NSEvent *)event
@@ -86,4 +87,37 @@
 	// If we don't respond to a method, let the delegate try.
 	return self.delegate;
 }
+- (void)copy: (id)sender
+{
+	auto *pb = [NSPasteboard generalPasteboard];
+	auto *selection = [self selectedRowIndexes];
+	auto *selectedObjects = [NSMutableArray new];
+	for (NSUInteger i : IndexSetRange<>(selection))
+	{
+		NSAssert([[self itemAtRow: static_cast<NSInteger>(i)] conformsToProtocol: @protocol(NSPasteboardWriting)],
+		         @"Trying to write invalid object to pasteboard");
+		[selectedObjects addObject: [self itemAtRow: static_cast<NSInteger>(i)]];
+	}
+	[pb clearContents];
+	[pb writeObjects: selectedObjects];
+}
+- (void)paste: (id)sender
+{
+	OOOutlineDataSource *delegate = self.delegate;
+	[delegate pasteFromPasteboard: [NSPasteboard generalPasteboard]];
+}
+- (BOOL)validateMenuItem: (NSMenuItem *)item
+{
+	OOOutlineDataSource *delegate = self.delegate;
+	if (sel_isEqual([item action], @selector(copy:)))
+	{
+		return [delegate canCopy];
+	}
+	if (sel_isEqual([item action], @selector(paste:)))
+	{
+		return [delegate canPaste];
+	}
+	return YES;
+}
+
 @end

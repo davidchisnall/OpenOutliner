@@ -28,21 +28,94 @@
 
 #import "OpenOutliner.h"
 
+thread_local OOOutlineDocument __unsafe_unretained *currentDocument;
+
+
+
 @implementation OOOutlineRow (Pasteboard)
 
 + (NSArray<NSString*>*)readableTypesForPasteboard: (NSPasteboard*)pasteboard
 {
-	return @[ OOOUtlineRowsPasteboardType ];
+	return @[ OOOUtlineRowsPasteboardType, OOOUtlineXMLPasteboardType ];
+}
+- (NSPasteboardWritingOptions)writingOptionsForType: (NSString*)type
+                                         pasteboard: (NSPasteboard *)pasteboard
+{
+	return 0;
 }
 - (NSArray<NSString*>*)writableTypesForPasteboard:(NSPasteboard *)pasteboard
 {
-	return @[ OOOUtlineRowsPasteboardType ];
+	if ([[pasteboard name] isEqualToString: NSDragPboard])
+	{
+		return @[ OOOUtlineRowsPasteboardType, (NSString*)kUTTypeUTF8PlainText, OOOUtlineXMLPasteboardType ];
+	}
+	return @[ (NSString*)kUTTypeUTF8PlainText, OOOUtlineXMLPasteboardType ];
+}
+- (void)writeToString: (NSMutableString*)aString withIndent: (NSUInteger)anIndent
+{
+	NSUInteger column = 0;
+	auto *cols = self.document.columns;
+	for (NSUInteger i=0 ; i<anIndent ; i++)
+	{
+		[aString appendString: @"\t"];
+	}
+	NSUInteger colCount = [cols count];
+	for (OOOutlineValue *val in self.values)
+	{
+		OOOutlineColumn *col = [cols objectAtIndex: column];
+		NSString *str;
+		id value = [val value];
+		if ([value isKindOfClass: [NSDate class]])
+		{
+			str = [value description];
+		}
+		else
+		{
+			str = get<NSString*>(value);
+		}
+		NSUInteger columnWidth = [col textExportWidth];
+		if (str != nil)
+		{
+			[aString appendString: str];
+		}
+		column++;
+		if (column == colCount)
+		{
+			break;
+		}
+		if ([str length] < columnWidth)
+		{
+			columnWidth -= [str length];
+			for (NSUInteger i=0 ; i< columnWidth ; i++)
+			{
+				[aString appendString: @" "];
+			}
+		}
+		[aString appendString: @"\t"];
+	}
 }
 - (nullable id)pasteboardPropertyListForType:(NSString *)type
 {
 	if ([type isEqualToString: OOOUtlineRowsPasteboardType])
 	{
 		return self.identifier;
+	}
+	if ([type isEqualToString: (NSString*)kUTTypeUTF8PlainText])
+	{
+		NSUInteger indent = -1ULL;
+		OOOutlineRow *parent = self;
+		auto *doc = self.document;
+		while ((parent = [doc parentForRow: parent]))
+		{
+			indent++;
+		}
+		auto *str = [NSMutableString new];
+		[self writeToString: str withIndent: indent];
+		return str;
+	}
+	if ([type isEqualToString: OOOUtlineXMLPasteboardType])
+	{
+		return [[self oo3xmlValue] XMLString];
 	}
 	return nil;
 }
@@ -60,6 +133,20 @@
 				return row;
 			}
 		}
+	}
+	if ([type isEqualToString: OOOUtlineXMLPasteboardType])
+	{
+		NSString *str = [[NSString alloc] initWithData: propertyList
+		                                      encoding: NSUTF8StringEncoding];
+		NSError *err = nil;
+		auto *element = [[NSXMLElement alloc] initWithXMLString: str
+														  error: &err];
+		if (err)
+		{
+			[NSApp presentError: err];
+			return nil;
+		}
+		return [self initWithOO3XMLNode: element inDocument: currentDocument];
 	}
 	return nil;
 }

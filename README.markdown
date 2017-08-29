@@ -67,7 +67,7 @@ The rough status so far is:
    - [x] Deleting rows
    - [x] Drag and drop within a document
    - [x] Indenting and unindenting rows
-   - [ ] Drag and drop between documents and to external editors
+   - [x] Drag and drop between documents and to external editors
    - [ ] Embedding images / other media in the document
    - [ ] Column editing:
      - [X] Adding columns

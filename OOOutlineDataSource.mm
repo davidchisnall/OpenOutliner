@@ -51,6 +51,7 @@
 @end
 
 auto *OOOUtlineRowsPasteboardType = @"org.theravensnest.openoutliner.internal.drag";
+auto *OOOUtlineXMLPasteboardType = @"org.theravensnest.openoutliner.xml";
 
 namespace {
 /**
@@ -108,6 +109,7 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 	rowViews = [NSMapTable weakToStrongObjectsMapTable];
 	OOOutlineDocument *doc = document;
 	NSOutlineView *v = view;
+	[v setDraggingSourceOperationMask: NSDragOperationCopy forLocal: NO];
 	[v setAllowsColumnSelection: YES];
 	auto *cols = [doc columns];
 	auto *c = [cols objectAtIndex: 0];
@@ -364,12 +366,18 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	[pasteboard writeObjects: items];
 	return YES;
 }
-- (IBAction)addRow: sender
+- (id<NSPasteboardWriting>)outlineView: (NSOutlineView*)outlineView
+               pasteboardWriterForItem: item
+{
+	return item;
+}
+
+- (std::tuple<OOOutlineRow*, NSMutableArray*, NSUInteger>)insertPoint
 {
 	auto *doc = document;
 	auto *v = view;
 	OOOutlineRow *selected = [v itemAtRow: [v selectedRow]];
-	OOOutlineRow *row = [doc parentForRow: selected];
+	OOOutlineRow *row = (selected == nil) ? doc.root : [doc parentForRow: selected];
 	OOOutlineRow *parent = row;
 	if (row == doc.root)
 	{
@@ -377,6 +385,14 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	}
 	auto *children = row.children;
 	NSUInteger idx = selected ? [children indexOfObject: selected] + 1 : 0;
+	return { parent, children, idx };
+}
+
+- (IBAction)addRow: sender
+{
+	auto *doc = document;
+	auto *v = view;
+	auto [ parent, children, idx ] = [self insertPoint];
 	auto *newRow = [[OOOutlineRow alloc] initInDocument: doc];
 	scoped_undo_grouping undo([doc undoManager], @"insert row");
 	[undo.record(v) reloadItem: parent reloadChildren: YES];
@@ -571,6 +587,48 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	}
 	[[columnInspector window] makeKeyAndOrderFront: self];
 }
+
+- (void)pasteFromPasteboard: (NSPasteboard*)aPasteboard
+{
+	@try
+	{
+		currentDocument = document;
+		auto *objs = [aPasteboard readObjectsForClasses: @[ [OOOutlineRow class]]
+		                                        options: nil];
+
+		// FIXME: We should do a lot more validation of number and types of rows!
+		auto [ parent, children, idx ] = [self insertPoint];
+		auto *doc = document;
+		auto *v = view;
+		scoped_undo_grouping undo([doc undoManager], @"paste");
+		[undo.record(v) reloadItem: parent reloadChildren: YES];
+		OOOutlineRow *newRow = nil;
+		for (newRow in objs)
+		{
+			[undo.record(children) removeObjectAtIndex: idx];
+			[children insertObject: newRow atIndex: idx++];
+		}
+		NSUInteger newIdx = static_cast<NSUInteger>([v selectedRow]) + [objs count];
+		[v reloadItem: parent reloadChildren: YES];
+		[v   selectRowIndexes: [NSIndexSet indexSetWithIndex: newIdx]
+		 byExtendingSelection: NO];
+	}
+	@finally
+	{
+		currentDocument = nil;
+	}
+}
+- (BOOL)canCopy
+{
+	return [[view selectedRowIndexes] count] > 0;
+}
+- (BOOL)canPaste
+{
+	auto *pb = [NSPasteboard generalPasteboard];
+	return [[pb types] containsObject: OOOUtlineXMLPasteboardType];
+}
+
+
 #ifdef TRACE_METHOD_QUERIES
 - (BOOL)respondsToSelector:(SEL)aSelector
 {
