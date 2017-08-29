@@ -30,7 +30,7 @@ OmniOutliner 5 uses a single file designed for 'better integration with third-pa
 Unfortunately, this makes it far less useful with revision control systems.
 
 This trend to make OmniOutliner more appealing to hipsters has made it less useful to me.
-I wish OmniGroup well in their development of OmniOutliner 3 and I suspect that they will find no shortage of hipsters willing to be parted from their money.
+I wish OmniGroup well in their development of OmniOutliner 5 and I suspect that they will find no shortage of hipsters willing to be parted from their money.
 In the meantime, I would like a functional outliner, and so have written one.
 
 OmniOutliner compatibility
