@@ -196,7 +196,10 @@
 	{
 		[(id)view setDelegate: self];
 	}
-	NSAssert([view isKindOfClass: [NSControl class]], @"Column view is not a control!");
+	if (![view isKindOfClass: [NSControl class]])
+	{
+		return;
+	}
 	auto *control = (NSControl*)view;
 	control.target = self;
 	control.action = @selector(edited:);
@@ -212,7 +215,10 @@
 	{
 		[(id)view setDelegate: nil];
 	}
-	NSAssert([view isKindOfClass: [NSControl class]], @"Column view is not a control!");
+	if (![view isKindOfClass: [NSControl class]])
+	{
+		return;
+	}
 	auto *control = (NSControl*)view;
 	control.target = nil;
 }
