@@ -448,7 +448,17 @@ SINGLETON(Max)
 		NSUInteger w = 0;
 		std::function<void(OOOutlineRow*)> visit = [&](OOOutlineRow *r)
 			{
-				NSString *s = get<NSString*>([[r.values objectAtIndex: colNumber] value]);
+				id val = [[r.values objectAtIndex: colNumber] value];
+				NSString *s;
+				if (formatter)
+				{
+					s = [formatter stringForObjectValue: val];
+				}
+				else
+				{
+					s = get<NSString*>(val);
+				}
+
 				w = std::max(w, [s length]);
 				for (OOOutlineRow *child in r.children)
 				{
