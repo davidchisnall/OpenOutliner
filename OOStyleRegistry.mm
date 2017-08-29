@@ -457,12 +457,12 @@ class enum_style_attribute : public style_attribute
 		auto *e = oo3XMLStyleElement();
 		NSXMLElement *table = [NSXMLElement elementWithName: @"enum-name-table"];
 		[table addAttribute: [@(defaultVal) stringValue] withName: @"default-value"];
-		for (auto &vk : keys)
+		for (auto &[value, key] : keys)
 		{
 			NSXMLElement *v = [NSXMLElement elementWithName: @"enum-name-table-element"];
-			[v addAttribute: [@(vk.first) stringValue]
-				   withName: @"value"];
-			[v addAttribute: vk.second withName: @"name"];
+			[v addAttribute: [@(value) stringValue]
+			       withName: @"value"];
+			[v addAttribute: key withName: @"name"];
 			[table addChild: v];
 		}
 		[e addChild: table];
@@ -496,9 +496,9 @@ public:
 		values(std::move(names)),
 		defaultVal(aDefault)
  	{
-		for (auto &kv : values)
+		for (auto &[key, value] : values)
 		{
-			keys[kv.second] = kv.first;
+			keys[value] = key;
 		}
 	}
 };

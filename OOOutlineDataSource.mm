@@ -89,12 +89,6 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 @implementation OOOutlineDataSource
 {
 	/**
-	 * Vector indexed by column of map tables containing weak-to-strong maps
-	 * from rows to `OOOutlineCellDelegate` instances.  This allows us to
-	 * recycle these objects.
-	 */
-	std::vector<NSMapTable*> targets;
-	/**
 	 * Weak to strong map of items to row views.  Lets us access the row view
 	 * without having to query the outline view, which could end up with 
 	 * infinite recursion.
@@ -343,17 +337,17 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	[undo.record(v) reloadItem: nil reloadChildren: YES];
 	[item.children insertObjects: rows atIndexes: insertIndexes];
 	[undo.record(item.children) removeObjectsAtIndexes: insertIndexes];
-	for (auto r : removals)
+	for (auto &[ row, indexes] : removals)
 	{
-		if (r.first == item)
+		if (row == item)
 		{
-			[r.second shiftIndexesStartingAtIndex: (NSUInteger)index
-			                                   by: (NSInteger)[rows count]];
+			[indexes shiftIndexesStartingAtIndex: (NSUInteger)index
+			                                  by: (NSInteger)[rows count]];
 		}
-		auto *toRemove = [r.first.children objectsAtIndexes: r.second];
-		[undo.record(r.first.children) insertObjects: toRemove
-		                                   atIndexes: r.second];
-		[r.first.children removeObjectsAtIndexes: r.second];
+		auto *toRemove = [row.children objectsAtIndexes: indexes];
+		[undo.record(row.children) insertObjects: toRemove
+		                               atIndexes: indexes];
+		[row.children removeObjectsAtIndexes: indexes];
 	}
 	[v reloadItem: nil reloadChildren: YES];
 	return YES;
@@ -424,12 +418,12 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	// Register the reload first, so that it will be invoked after undoing all
 	// of the changes.
 	[undo.record(v) reloadItem: nil reloadChildren: YES];
-	for (auto r : removals)
+	for (auto &[row, indexes] : removals)
 	{
-		auto *toRemove = [r.first.children objectsAtIndexes: r.second];
-		[undo.record(r.first.children) insertObjects: toRemove
-		                                   atIndexes: r.second];
-		[r.first.children removeObjectsAtIndexes: r.second];
+		auto *toRemove = [row.children objectsAtIndexes: indexes];
+		[undo.record(row.children) insertObjects: toRemove
+		                               atIndexes: indexes];
+		[row.children removeObjectsAtIndexes: indexes];
 	}
 	[v reloadItem: nil reloadChildren: YES];
 
