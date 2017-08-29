@@ -47,7 +47,7 @@
 	return nil;
 }
 - (nullable id)initWithPasteboardPropertyList: (id)propertyList
-									   ofType: (NSString *)type
+                                       ofType: (NSString *)type
 {
 	if ([type isEqualToString: OOOUtlineRowsPasteboardType])
 	{

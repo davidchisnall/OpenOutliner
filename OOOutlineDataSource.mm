@@ -321,7 +321,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	auto *doc = document;
 	auto *v = view;
 	NSArray<OOOutlineRow*> *rows = [[info draggingPasteboard] readObjectsForClasses: @[ [OOOutlineRow class] ] options: nil];
-	auto *insertIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange((NSUInteger)index,  [rows count])];
+	auto *insertIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange((NSUInteger)index, [rows count])];
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
 	collectRowsToRemove(doc, rows, removals);
 	scoped_undo_grouping undo([doc undoManager], @"move rows");
