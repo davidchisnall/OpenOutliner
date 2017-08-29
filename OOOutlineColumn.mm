@@ -347,10 +347,24 @@ SINGLETON(Max)
 		{ OOOutlineColumnTypeDate, @"date" },
 		{ OOOutlineColumnTypeEnumeration, @"enumeration"}
 	};
+	static object_map<Class, NSString*> summaryKinds =
+	{
+		{ nil, @"none" },
+		{ [OOOutlineSummarySum class], @"sum" },
+		// FIXME: State should be a tri-state logic thing, but we don't yet
+		// have a value class for it Left blank for now, so that we will get
+		// an exception if it's used
+		//{ [OOOutlineSummaryState class], @"state" },
+		{ [OOOutlineSummaryMean class], @"average" },
+		{ [OOOutlineSummaryMin class], @"minimum" },
+		{ [OOOutlineSummaryMax class], @"maximum" },
+	};
+
 	// FIXME: sort direction (if any)
 	[col setAttributesAsDictionary: @{
 									  @"id"    : identifier,
 									  @"type"  : columnTypes[columnType],
+									  @"summary" : summaryKinds[[summary class]],
 									  @"width" : [NSString stringWithFormat: @"%ld", (long)width],
 									  @"minimum-width" : [NSString stringWithFormat: @"%ld", (long)minWidth],
 									  @"maximum-width" : [NSString stringWithFormat: @"%ld", (long)maxWidth],
