@@ -32,13 +32,17 @@
 @synthesize format;
 - (NSDate*)dateFromString: (NSString*)aString
 {
-	struct tm time;
+	struct tm time = { 0 };
 	strptime([aString UTF8String], [format UTF8String], &time);
-	auto interval = timelocal(&time);
+	auto interval = mktime(&time);
 	return [NSDate dateWithTimeIntervalSince1970: interval];
 }
 - (NSString*)stringForObjectValue: (id)anObject
 {
+	if (anObject == nil)
+	{
+		return nil;
+	}
 	if ([anObject isKindOfClass: [NSString class]])
 	{
 		return anObject;
