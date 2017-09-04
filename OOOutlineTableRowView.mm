@@ -241,7 +241,10 @@
 	auto *column = [doc.columns objectAtIndex: columnNumber];
 	NSControl *view = sender;
 	OOOutlineValue *val = [row.values objectAtIndex: columnNumber];
-	OOOutlineValue *newVal = [[[val class] alloc] initWithValue: [view objectValue]
+	id obj = [view isKindOfClass: [NSComboBox class]]
+		? [(NSComboBox*)view objectValueOfSelectedItem]
+		: [view objectValue];
+	OOOutlineValue *newVal = [[[val class] alloc] initWithValue: obj
 	                                                   inColumn: column];
 	auto *vals = row.values;
 	scoped_undo_grouping undo([doc undoManager], @"edit cell");

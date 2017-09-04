@@ -306,15 +306,29 @@
 }
 - (instancetype)initWithValue: (id)aValue inColumn: (OOOutlineColumn*)aCol
 {
-	// FIXME: We should be setting the enum value id
-	NSAssert([aValue isKindOfClass: [NSAttributedString class]], @"Incorrect class");
-	text = [aValue mutableCopy];
-	auto *keys = [aCol.enumValues allKeysForObject: [text string]];
+	NSString *str;
+	if ([aValue isKindOfClass: [NSString class]])
+	{
+		str = aValue;
+		aValue= [[NSAttributedString alloc] initWithString: aValue
+		                                        attributes: [aCol defaultStyle]];
+	}
+	else
+	{
+		NSAssert([aValue isKindOfClass: [NSAttributedString class]], @"Incorrect class");
+		str = [aValue string];
+	}
+	if ([str length] == 0)
+	{
+		return (id)[[OOOutlineEmptyValue alloc] initWithValue: nil inColumn: aCol];
+	}
+	auto *keys = [aCol.enumValues allKeysForObject: str];
 	if ([keys count] == 0)
 	{
 		NSAssert(NO, @"Not yet implemented!");
 	}
 	enumValName = [keys objectAtIndex: 0];
+	text = [aValue copy];
 	return self;
 }
 @end
