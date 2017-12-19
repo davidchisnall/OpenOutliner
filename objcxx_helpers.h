@@ -285,6 +285,10 @@ struct scoped_undo_grouping
 	template<typename T>
 	T record(T receiver)
 	{
+		if (receiver == nil)
+		{
+			return nil;
+		}
 		return [undo prepareWithInvocationTarget: receiver];
 	}
 	/**
