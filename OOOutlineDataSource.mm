@@ -142,7 +142,7 @@ void collectRowsToRemove(OOOutlineDocument *doc,
 			}
 		};
 	visit(doc.root);
-	[v registerForDraggedTypes: @[ OOOUtlineRowsPasteboardType ]];
+	[v registerForDraggedTypes: @[ OOOUtlineRowsPasteboardType, OOOUtlineXMLPasteboardType ]];
 	[[NSNotificationCenter defaultCenter] addObserver: self
 	                                         selector: @selector(columnsDidChange:)
 	                                             name: OOOutlineColumnsDidChangeNotification
@@ -326,11 +326,29 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
 	{
 		item = doc.root;
 	}
+	BOOL isMove = NO;
+	NSDictionary *options = nil;
+	// If this is a copy operation, then remove the type that will give us
+	// pointers to existing objects.
+	if (([info draggingSourceOperationMask] & NSDragOperationCopy) ||
+	    ([info draggingSource] != outlineView))
+	{
+		options = @{ NSPasteboardURLReadingContentsConformToTypesKey : @[ OOOUtlineXMLPasteboardType ] };
+		isMove = YES;
+		currentDocument = doc;
+	}
 	// FIXME: Handle index == -1 correctly
-	NSArray<OOOutlineRow*> *rows = [[info draggingPasteboard] readObjectsForClasses: @[ [OOOutlineRow class] ] options: nil];
+	NSArray<OOOutlineRow*> *rows = [[info draggingPasteboard] readObjectsForClasses: @[ [OOOutlineRow class] ]
+	                                                                        options: options];
+	currentDocument = nil;
 	auto *insertIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange((NSUInteger)index, [rows count])];
 	object_map<OOOutlineRow*, NSMutableIndexSet*> removals;
-	collectRowsToRemove(doc, rows, removals);
+	// If we're not moving objects, then don't bother to find where they came
+	// from, they're all new.
+	if (isMove)
+	{
+		collectRowsToRemove(doc, rows, removals);
+	}
 	scoped_undo_grouping undo([doc undoManager], @"move rows");
 	// Register the reload first, so that it will be invoked after undoing all
 	// of the changes.
@@ -357,7 +375,7 @@ objectValueForTableColumn: (NSTableColumn*)tableColumn
                   proposedItem: item
             proposedChildIndex: (NSInteger)index
 {
-	if (outlineView == view)
+	if ([info draggingSource] == view)
 	{
 		return NSDragOperationMove;
 	}

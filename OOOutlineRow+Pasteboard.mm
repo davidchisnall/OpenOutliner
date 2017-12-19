@@ -126,7 +126,14 @@ thread_local OOOutlineDocument __unsafe_unretained *currentDocument;
 	{
 		NSString *ident = [[NSString alloc] initWithData: propertyList
 		                                        encoding: NSUTF8StringEncoding];
-		for (OOOutlineDocument *doc in [OOOutlineDocument allDocuments])
+		if (currentDocument)
+		{
+			if (OOOutlineRow *row = [[currentDocument allRows] objectForKey: ident])
+			{
+				return row;
+			}
+		}
+		else for (OOOutlineDocument *doc in [OOOutlineDocument allDocuments])
 		{
 			if (OOOutlineRow *row = [[doc allRows] objectForKey: ident])
 			{
@@ -134,7 +141,7 @@ thread_local OOOutlineDocument __unsafe_unretained *currentDocument;
 			}
 		}
 	}
-	if ([type isEqualToString: OOOUtlineXMLPasteboardType])
+	else if ([type isEqualToString: OOOUtlineXMLPasteboardType])
 	{
 		NSString *str = [[NSString alloc] initWithData: propertyList
 		                                      encoding: NSUTF8StringEncoding];
