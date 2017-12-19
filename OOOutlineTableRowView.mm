@@ -225,16 +225,16 @@
 }
 - (void)edited: sender
 {
-	NSUInteger columnNumber = -1;
+	NSUInteger columnNumber = -1ULL;
 	for (NSInteger i=0, e=[self numberOfColumns] ; i<e ; i++)
 	{
 		if (sender == [self viewAtColumn: i])
 		{
-			columnNumber = i;
+			columnNumber = static_cast<NSUInteger>(i);
 			break;
 		}
 	}
-	if (columnNumber == -1)
+	if (columnNumber == -1ULL)
 	{
 		return;
 	}
