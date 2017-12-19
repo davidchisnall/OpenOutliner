@@ -27,7 +27,8 @@
 
 
 #import "OpenOutliner.h"
-#import "objc/runtime.h"
+#import <objc/runtime.h>
+#import <objc/message.h>
 
 @implementation OOOutlineView
 - (void)keyDown:(NSEvent *)event
@@ -109,13 +110,14 @@
 - (BOOL)validateMenuItem: (NSMenuItem *)item
 {
 	OOOutlineDataSource *delegate = self.delegate;
-	if (sel_isEqual([item action], @selector(copy:)))
+	NSString *selName = NSStringFromSelector([item action]);
+	NSString *firstCharUpper = [[selName substringToIndex: 1] uppercaseString];
+	NSString *rest = [selName substringFromIndex: 1];
+	NSString *querySelName = [NSString stringWithFormat: @"can%@%@", firstCharUpper, rest];
+	SEL querySel = NSSelectorFromString(querySelName);
+	if ([delegate respondsToSelector: querySel])
 	{
-		return [delegate canCopy];
-	}
-	if (sel_isEqual([item action], @selector(paste:)))
-	{
-		return [delegate canPaste];
+		return ((BOOL(*)(id, SEL))objc_msgSend)(delegate, querySel);
 	}
 	return YES;
 }
