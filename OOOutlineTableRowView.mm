@@ -194,6 +194,13 @@
 	{
 		return;
 	}
+
+	// Recalculate the tab order
+	for (NSInteger i=0 ; i<numberOfColumns-1 ; i++)
+	{
+		[[self viewAtColumn: i] setNextKeyView: [self viewAtColumn: i+1]];
+	}
+
 	if ([view respondsToSelector: @selector(setDelegate:)])
 	{
 		[(id)view setDelegate: self];
