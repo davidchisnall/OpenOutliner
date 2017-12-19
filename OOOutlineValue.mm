@@ -306,6 +306,7 @@
 }
 - (instancetype)initWithValue: (id)aValue inColumn: (OOOutlineColumn*)aCol
 {
+	OO_SUPER_INIT();
 	NSString *str;
 	if ([aValue isKindOfClass: [NSString class]])
 	{
