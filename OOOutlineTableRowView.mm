@@ -180,7 +180,8 @@
 {
 	[super addSubview: view];
 	BOOL found = NO;
-	for (NSInteger i=0, e=[self numberOfColumns] ; i<e ; i++)
+	auto numberOfColumns = [self numberOfColumns];
+	for (NSInteger i=0 ; i<numberOfColumns ; i++)
 	{
 		if (view == [self viewAtColumn: i])
 		{
